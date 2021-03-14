@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">Sharing</string>
+    <string name="title_app">Sharing</string>
+    <string name="username">username</string>
+    <string name="sign_in">Sign in</string>
+    <string name="password">password</string>
+    <string name="register">Register</string>
+    <string name="name">name</string>
+    <string name="email">email</string>
+    <string name="confirm_password">confirm password</string>
+    <string name="go_to_login">Go to login</string>
+    <string name="cd_google_logo">google logo</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="create_an_account">Create an account</string>
+    <string name="or_login_with_google">or login with Google</string>
 </resources>

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,6 +15,7 @@ import java.util.Objects;
 
 import andreibunu.projects.R;
 import andreibunu.projects.ui.base.BaseFragment;
+import andreibunu.projects.ui.gallery.GalleryFragment;
 import andreibunu.projects.ui.register.RegisterFragment;
 
 public class LoginFragment extends BaseFragment {
@@ -32,17 +34,9 @@ public class LoginFragment extends BaseFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        TextView register = view.findViewById(R.id.login_register);
-        register.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction()
-                        .setCustomAnimations(R.anim.slide_in, R.anim.slide2_out);
-                RegisterFragment fragment = new RegisterFragment();
-                ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
-                ft.commit();
-            }
-        });
+
+        setLoginListsner(view);
+        setRegisterListener(view);
     }
 
     @Override
@@ -58,6 +52,33 @@ public class LoginFragment extends BaseFragment {
     @Override
     protected void injectDependencies() {
 
+    }
+
+    private void setLoginListsner(View view) {
+        Button login = view.findViewById(R.id.login_login_btn);
+        login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction();
+                GalleryFragment fragment = new GalleryFragment();
+                ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
+                ft.commit();
+            }
+        });
+    }
+
+    private void setRegisterListener(View view) {
+        TextView register = view.findViewById(R.id.login_register);
+        register.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction()
+                        .setCustomAnimations(R.anim.slide_in, R.anim.slide2_out);
+                RegisterFragment fragment = new RegisterFragment();
+                ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
+                ft.commit();
+            }
+        });
     }
 
 }

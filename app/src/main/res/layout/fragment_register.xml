@@ -7,9 +7,6 @@
     android:background="@drawable/login_background"
     tools:context=".ui.register.RegisterFragment">
 
-
-
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/register_topper_constraint"
         android:layout_width="match_parent"
@@ -23,11 +20,13 @@
         <TextView
             android:layout_width="164dp"
             android:layout_height="match_parent"
-            android:background="@drawable/logo_background_shape"
             android:gravity="center"
             android:text="@string/title_app"
-            android:textColor="@color/colorPrimary"
-            android:textSize="24sp"
+            android:textColor="@color/textColorWhite"
+            android:textSize="28sp"
+            android:shadowColor="@color/colorPrimaryDark"
+            android:shadowRadius="12"
+            android:shadowDy="12"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -54,7 +53,7 @@
         android:layout_height="64dp"
         android:layout_marginTop="24dp"
         android:background="@drawable/login_input_background"
-        android:textColorHint="@color/white_hint"
+        android:textColorHint="@color/white_hint75"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.506"
         app:layout_constraintStart_toStartOf="parent"
@@ -79,7 +78,7 @@
         android:layout_height="64dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/login_input_background"
-        android:textColorHint="@color/white_hint"
+        android:textColorHint="@color/white_hint75"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/register_name_layout"
@@ -94,7 +93,7 @@
             android:paddingEnd="16dp"
             android:singleLine="true"
             android:textColor="@color/colorPrimary"
-            android:textColorHint="@color/white_hint" />
+            android:textColorHint="@color/white_hint75" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -103,7 +102,7 @@
         android:layout_height="64dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/login_input_background"
-        android:textColorHint="@color/white_hint"
+        android:textColorHint="@color/white_hint75"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/register_username_layout">
@@ -118,7 +117,7 @@
             android:paddingEnd="16dp"
             android:singleLine="true"
             android:textColor="@color/colorPrimary"
-            android:textColorHint="@color/white_hint" />
+            android:textColorHint="@color/white_hint75" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -127,7 +126,7 @@
         android:layout_height="64dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/login_input_background"
-        android:textColorHint="@color/white_hint"
+        android:textColorHint="@color/white_hint75"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/register_email_layout"
@@ -143,7 +142,7 @@
             android:paddingEnd="16dp"
             android:singleLine="true"
             android:textColor="@color/colorPrimary"
-            android:textColorHint="@color/white_hint" />
+            android:textColorHint="@color/white_hint75" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -152,7 +151,7 @@
         android:layout_height="64dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/login_input_background"
-        android:textColorHint="@color/white_hint"
+        android:textColorHint="@color/white_hint75"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/register_password_layout"
@@ -168,7 +167,7 @@
             android:paddingEnd="16dp"
             android:singleLine="true"
             android:textColor="@color/colorPrimary"
-            android:textColorHint="@color/white_hint" />
+            android:textColorHint="@color/white_hint75" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button

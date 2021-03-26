@@ -20,7 +20,6 @@ import andreibunu.projects.ui.login.LoginFragment;
 
 public class RegisterFragment extends BaseFragment {
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,7 +35,24 @@ public class RegisterFragment extends BaseFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        setLoginListener(view);
 
+    }
+
+    @Override
+    protected void attach() {
+
+    }
+
+    @Override
+    protected int getLayoutResourceId() {
+        return R.layout.fragment_register;
+    }
+
+    @Override
+    protected void injectDependencies() {}
+
+    private void setLoginListener(View view) {
         TextView login = view.findViewById(R.id.register_login);
         login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,18 +66,4 @@ public class RegisterFragment extends BaseFragment {
         });
     }
 
-    @Override
-    protected void attach() {
-
-    }
-
-    @Override
-    protected int getLayoutResourceId() {
-        return 0;
-    }
-
-    @Override
-    protected void injectDependencies() {
-
-    }
 }

@@ -20,17 +20,28 @@ import java.io.File;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import javax.inject.Inject;
+
+import andreibunu.projects.App;
 import andreibunu.projects.R;
+import andreibunu.projects.apiService.facerecognition.FaceRecognitionHandler;
 import andreibunu.projects.domain.PhonePhoto;
 import andreibunu.projects.ui.base.BaseFragment;
 import andreibunu.projects.utils.ImageUtils;
+import io.reactivex.SingleObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
 
 public class GalleryTypeFragment extends BaseFragment {
+
+    @Inject
+    FaceRecognitionHandler handler;
 
     public static final int EXTERNAL_STORAGE_REQUEST_CODE = 101;
     List<Object> phonePhotos;
@@ -55,11 +66,14 @@ public class GalleryTypeFragment extends BaseFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        App.getInstance().getAppComponent().inject(this);
+
         RecyclerView recyclerView = view.findViewById(R.id.gallery_rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
         if (phonePhotos.size() == 0) {
             try {
+                checkWritePermission();
                 checkPermission();
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -79,7 +93,6 @@ public class GalleryTypeFragment extends BaseFragment {
 
     @Override
     protected void injectDependencies() {
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -109,8 +122,18 @@ public class GalleryTypeFragment extends BaseFragment {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
+    private void checkWritePermission() {
+        if (ActivityCompat.checkSelfPermission(Objects.requireNonNull(getContext()),
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    EXTERNAL_STORAGE_REQUEST_CODE);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private void loadPhotos() throws ParseException {
         ArrayList<PhonePhoto> all = getSortedPhotos();
+        all.forEach(el -> testSendImage(new File(el.getAbsolutePath())));
         Calendar calendarCurrent = getCalendar(all.get(0));
         int year = calendarCurrent.get(Calendar.YEAR);
         int month = calendarCurrent.get(Calendar.MONTH);
@@ -148,12 +171,7 @@ public class GalleryTypeFragment extends BaseFragment {
 
     private ArrayList<PhonePhoto> getSortedPhotos() throws ParseException {
         ArrayList<PhonePhoto> all = getCameraPhotos();
-        all.sort(new Comparator<PhonePhoto>() {
-            @Override
-            public int compare(PhonePhoto o1, PhonePhoto o2) {
-                return o2.getDate().compareTo(o1.getDate());
-            }
-        });
+        all.sort((o1, o2) -> o2.getDate().compareTo(o1.getDate()));
         return all;
     }
 
@@ -171,10 +189,33 @@ public class GalleryTypeFragment extends BaseFragment {
         File[] files = ImageUtils.getCameraPhotos();
         for (File file : files) {
             String path = file.getAbsolutePath();
-            Date date = ImageUtils.getDateFromName(file.getName());
-            images.add(new PhonePhoto(path, date));
+            if (path.contains("jpg")) {
+                Date date = ImageUtils.getDateFromName(file.getName());
+                images.add(new PhonePhoto(path, date));
+            }
         }
         return images;
+    }
+
+    private void testSendImage(File file) {
+        handler.sendImage(file).observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(new SingleObserver<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        Log.d(TAG, "subscribed...");
+                    }
+
+                    @Override
+                    public void onSuccess(String s) {
+                        Log.d(TAG, "success..." + s);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, "failed!");
+                    }
+                });
     }
 
     public boolean isSameMonthAndYear(Calendar calendar, int month, int year) {

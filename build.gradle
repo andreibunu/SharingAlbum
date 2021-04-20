@@ -3,6 +3,34 @@ buildscript {
 
     ext.glideVersion = '4.11.0'
     ext.circularImageViewVersion = "4.2.0"
+    ext.daggerVersion = '2.17'
+    ext.retrofitVersion = '2.5.0'
+    ext.gsonVersion = '2.7'
+    ext.rxJavaVersion = '3.0.4'
+    ext.stethoVersion = '1.5.1'
+    ext.retrofit2Version = '2.2.0'
+    ext.rxJava2AddapterVersion = '1.0.0'
+    ext.rxJava2 = '2.1.14'
+    ext.rxJava2Android = '2.0.2'
+    ext.gsonVersion = '2.1.0'
+
+    ext.constraintlayoutVersion = '1.1.3'
+    ext.legacy_support_v4Version = '1.0.0'
+    ext.materialVersion = '1.2.0'
+    ext.junitVersion = '4.12'
+    ext.converter_gsonVersion = '2.2.0'
+    ext.espresso_coreVersion = '3.2.0'
+    ext.navVersion = '2.3.0'
+    ext.gradleVersion = '4.0.1'
+    ext.roomVersion = '2.2.5'
+    ext.circleimageviewVersion = '3.1.0'
+    ext.appcompatVersion = '1.1.0'
+    ext.glideVersion = '4.11.0'
+    ext.firebaseMessagingVersion = '20.2.4'
+    ext.play_services_version = '17.0.0'
+    ext.imageSliderVersion = '1.3.9'
+    ext.stethoVersion = '1.5.1'
+
 
     repositories {
         google()

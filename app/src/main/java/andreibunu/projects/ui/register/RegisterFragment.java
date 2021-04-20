@@ -1,16 +1,14 @@
 package andreibunu.projects.ui.register;
 
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentTransaction;
 
 import java.util.Objects;
 
@@ -50,19 +48,17 @@ public class RegisterFragment extends BaseFragment {
     }
 
     @Override
-    protected void injectDependencies() {}
+    protected void injectDependencies() {
+    }
 
     private void setLoginListener(View view) {
         TextView login = view.findViewById(R.id.register_login);
-        login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction()
-                        .setCustomAnimations(R.anim.slide_back_in, R.anim.slide_back_out);
-                LoginFragment fragment = new LoginFragment();
-                ft.replace(R.id.fragment, fragment);
-                ft.commit();
-            }
+        login.setOnClickListener(v -> {
+            FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction()
+                    .setCustomAnimations(R.anim.slide_back_in, R.anim.slide_back_out);
+            LoginFragment fragment = new LoginFragment();
+            ft.replace(R.id.fragment, fragment);
+            ft.commit();
         });
     }
 

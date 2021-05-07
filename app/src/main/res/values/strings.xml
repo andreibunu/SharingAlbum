@@ -7,6 +7,8 @@
     <string name="register">Register</string>
     <string name="name">name</string>
     <string name="email">email</string>
+    <string name="mode">mode</string>
+
     <string name="confirm_password">confirm password</string>
     <string name="go_to_login">Go to login</string>
     <string name="cd_google_logo">google logo</string>
@@ -19,4 +21,15 @@
     <string name="pics_from_friends_n">Pics from Friends\n(%1$d)</string>
     <string name="menu">Menu</string>
     <string name="image_from_gallery">Image from gallery</string>
+    <string name="who">Who</string>
+    <string name="filter_screen_title">Apply filters and find your photos!</string>
+    <string name="when">when</string>
+    <string name="where">where</string>
+    <string name="what">what</string>
+    <string name="see_your_photos">See your photos</string>
+    <string name="options">options</string>
+    <string name="theme">theme</string>
+    <string name="theme_black">Cool Black</string>
+    <string name="theme_info">This feature is yet to be implemented</string>
+    <string name="save">Save</string>
 </resources>

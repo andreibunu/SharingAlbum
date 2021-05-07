@@ -19,6 +19,7 @@ import retrofit2.Response;
 import static andreibunu.projects.utils.ImageUtils.getFileFormat;
 
 public class FaceRecognitionProxy {
+    public static final String TAG = FaceRecognitionProxy.class.getCanonicalName();
     FaceRecognitionService service;
 
     @Inject
@@ -26,7 +27,7 @@ public class FaceRecognitionProxy {
         this.service = service;
     }
 
-    public List<Integer> testImg2(File imgFile) {
+    public List<Integer> testImg2(File imgFile, String uid) {
         try {
             imgFile = ImageUtils.saveBitmapToFile(imgFile);
             List<MultipartBody.Part> addProductRequest = new ArrayList<>();
@@ -38,14 +39,19 @@ public class FaceRecognitionProxy {
 
             addProductRequest.add(uploadImagesPart);
 
+            MultipartBody.Part uidPart = MultipartBody.Part.createFormData("uid", uid);
+            addProductRequest.add(uidPart);
+
             Response<ImageResponse> response = service.testImg(addProductRequest).execute();
             if (response.isSuccessful() && response.body() != null) {
-                Log.d("FLASKRES", response.body().getResult().toString());
+                Log.d(TAG, response.body().getResult().toString());
                 return response.body().getResult();
             }
         } catch (Exception e) {
-            Log.d("MYERROR", Objects.requireNonNull(e.getMessage()));
+            Log.d(TAG, Objects.requireNonNull(e.getMessage()));
         }
         return null;
     }
+
+
 }

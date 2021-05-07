@@ -18,7 +18,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 @Module
 public class ApiModule {
 
-    public static final String BASE_BACKEND_URL = "http://192.168.0.234:2021/";
+    public static final String BASE_BACKEND_URL = "http:/192.168.0.234:2021/";
 
     @Provides
     Retrofit provideRetrofit() {

@@ -16,6 +16,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.io.File;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -23,17 +26,24 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
 import andreibunu.projects.App;
 import andreibunu.projects.R;
 import andreibunu.projects.apiService.facerecognition.FaceRecognitionHandler;
+import andreibunu.projects.database.DatabaseHandler;
+import andreibunu.projects.database.DatabaseImage;
 import andreibunu.projects.domain.PhonePhoto;
 import andreibunu.projects.ui.base.BaseFragment;
+import andreibunu.projects.ui.filter.FilterList;
+import andreibunu.projects.ui.filter.adapter.domain.FriendFilter;
 import andreibunu.projects.utils.ImageUtils;
+import andreibunu.projects.utils.Utils;
 import io.reactivex.SingleObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
@@ -43,9 +53,20 @@ public class GalleryTypeFragment extends BaseFragment {
     @Inject
     FaceRecognitionHandler handler;
 
+    @Inject
+    DatabaseHandler databaseHandler;
+
+    FirebaseUser firebaseAuth;
+
     public static final int EXTERNAL_STORAGE_REQUEST_CODE = 101;
     List<Object> phonePhotos;
     GalleryAdapter adapter;
+    FilterList filterList;
+    protected CompositeDisposable disposables = new CompositeDisposable();
+
+    public GalleryTypeFragment(FilterList filtersList) {
+        this.filterList = filtersList;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,6 +74,7 @@ public class GalleryTypeFragment extends BaseFragment {
         phonePhotos = new ArrayList<>();
         adapter = new GalleryAdapter();
         adapter.submitList(phonePhotos);
+        firebaseAuth = FirebaseAuth.getInstance().getCurrentUser();
     }
 
     @Override
@@ -67,24 +89,17 @@ public class GalleryTypeFragment extends BaseFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         App.getInstance().getAppComponent().inject(this);
-
         RecyclerView recyclerView = view.findViewById(R.id.gallery_rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
         if (phonePhotos.size() == 0) {
-            try {
-                checkWritePermission();
-                checkPermission();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            checkWritePermission();
+            checkPermission();
         }
     }
 
     @Override
-    protected void attach() {
-
-    }
+    protected void attach() {}
 
     @Override
     protected int getLayoutResourceId() {
@@ -101,23 +116,19 @@ public class GalleryTypeFragment extends BaseFragment {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == EXTERNAL_STORAGE_REQUEST_CODE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                try {
-                    loadPhotos();
-                } catch (ParseException e) {
-                    Log.d(TAG, Objects.requireNonNull(e.getMessage()));
-                }
+                beginProcess();
             }
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    private void checkPermission() throws ParseException {
+    private void checkPermission() {
         if (ActivityCompat.checkSelfPermission(Objects.requireNonNull(getContext()),
                 Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     EXTERNAL_STORAGE_REQUEST_CODE);
         } else {
-            loadPhotos();
+            beginProcess();
         }
     }
 
@@ -131,9 +142,123 @@ public class GalleryTypeFragment extends BaseFragment {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
-    private void loadPhotos() throws ParseException {
-        ArrayList<PhonePhoto> all = getSortedPhotos();
-        all.forEach(el -> testSendImage(new File(el.getAbsolutePath())));
+    private void beginProcess() {
+        disposables.add(this.databaseHandler.getImages().observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(this::loadPhotos));
+    }
+
+    /**
+     * @param databaseImages list of images from local database
+     * @throws ParseException Logic:
+     *                        1. Get all images from phone
+     *                        2. Send all the photos that are not in the database to the server to be processed
+     *                        3. After the server calls are back, filter all photos from database through the filter object
+     */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private void loadPhotos(List<DatabaseImage> databaseImages) throws ParseException {
+        ArrayList<PhonePhoto> all = getCameraPhotos();
+        List<PhonePhoto> newFiles = findNewPhotosToServer(all, databaseImages);
+        if (newFiles.size() == 0) {
+            getFilteredPhotos(databaseImages);
+        } else {
+            sendImages(newFiles);
+        }
+    }
+
+    private List<PhonePhoto> findNewPhotosToServer(ArrayList<PhonePhoto> all, List<DatabaseImage> databaseImages) {
+        List<PhonePhoto> newPhotos = new ArrayList<>();
+        for (PhonePhoto el : all) {
+            File f = new File(el.getAbsolutePath());
+            boolean alreadyExists = false;
+            for (DatabaseImage dbImage : databaseImages) {
+                if (dbImage.getImageName().equals(f.getAbsolutePath())) {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+            if (!alreadyExists) {
+                newPhotos.add(el);
+            }
+        }
+        return newPhotos;
+    }
+
+    private void sendImages(List<PhonePhoto> photos) {
+        int numberOfCalls = photos.size();
+        AtomicInteger count = new AtomicInteger(0);
+        photos.forEach(phonePhoto -> handler.sendImage(new File(phonePhoto.getAbsolutePath()), firebaseAuth.getUid()).observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(new SingleObserver<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        Log.d(TAG, "subscribed...");
+                    }
+
+                    @Override
+                    public void onSuccess(String s) {
+                        Log.d(TAG, "success..." + s);
+                        count.incrementAndGet();
+                        if (numberOfCalls == count.get()) {
+                            filterAndDisplayList();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, Objects.requireNonNull(e.getMessage()));
+                        count.incrementAndGet();
+                        if (numberOfCalls == count.get()) {
+                            filterAndDisplayList();
+                        }
+                    }
+                }));
+    }
+
+    private void filterAndDisplayList() {
+        disposables.add(this.databaseHandler.getImages().observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(this::getFilteredPhotos));
+    }
+
+    private void getFilteredPhotos(List<DatabaseImage> databaseImages) {
+        ArrayList<DatabaseImage> ret = new ArrayList<>();
+        for (DatabaseImage photo : databaseImages) {
+            List<Integer> people = Utils.getListFromStringifiedList(photo.getPerson());
+            //check if people contain all the ids in filter list
+            if (checkIfPeopleAppear(people)) {
+                ret.add(photo);
+            }
+        }
+        updateList(ret);
+    }
+
+    private boolean checkIfPeopleAppear(List<Integer> people) {
+        for (FriendFilter el : filterList.getFriends()) {
+            if (!people.contains(Integer.parseInt(el.getId()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void updateList(List<DatabaseImage> ret) {
+        List<PhonePhoto> all = new ArrayList<>();
+        ret.forEach(dbImage -> {
+            File f = new File(dbImage.getImageName());
+            try {
+                PhonePhoto phonePhoto = new PhonePhoto(dbImage.getImageName(), ImageUtils.getDateFromName(f.getName()));
+                all.add(phonePhoto);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        });
+        all.sort((o1, o2) -> o2.getDate().compareTo(o1.getDate()));
+        createPairs(all);
+    }
+
+    private void createPairs(List<PhonePhoto> all) {
+        phonePhotos.clear();
         Calendar calendarCurrent = getCalendar(all.get(0));
         int year = calendarCurrent.get(Calendar.YEAR);
         int month = calendarCurrent.get(Calendar.MONTH);
@@ -163,24 +288,18 @@ public class GalleryTypeFragment extends BaseFragment {
         adapter.notifyDataSetChanged();
     }
 
+
+
+
+
     private Calendar getCalendar(PhonePhoto phonePhoto) {
         Calendar calendarCurrent = Calendar.getInstance();
         calendarCurrent.setTime(phonePhoto.getDate());
         return calendarCurrent;
     }
 
-    private ArrayList<PhonePhoto> getSortedPhotos() throws ParseException {
-        ArrayList<PhonePhoto> all = getCameraPhotos();
-        all.sort((o1, o2) -> o2.getDate().compareTo(o1.getDate()));
-        return all;
-    }
-
     private void addPairElement(PhonePhoto left, PhonePhoto right) {
         PhotoPair pair = new PhotoPair(left, right);
-        pair.setLeftOrientation(ImageUtils.getCameraPhotoOrientation(left.getAbsolutePath()) == 0 ? PhotoPair.Orientation.PORTRAIT : PhotoPair.Orientation.LANDSCAPE);
-        if (right != null) {
-            pair.setRightOrientation(ImageUtils.getCameraPhotoOrientation(right.getAbsolutePath()) == 0 ? PhotoPair.Orientation.PORTRAIT : PhotoPair.Orientation.LANDSCAPE);
-        }
         this.phonePhotos.add(pair);
     }
 
@@ -195,27 +314,6 @@ public class GalleryTypeFragment extends BaseFragment {
             }
         }
         return images;
-    }
-
-    private void testSendImage(File file) {
-        handler.sendImage(file).observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe(new SingleObserver<String>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                        Log.d(TAG, "subscribed...");
-                    }
-
-                    @Override
-                    public void onSuccess(String s) {
-                        Log.d(TAG, "success..." + s);
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.d(TAG, "failed!");
-                    }
-                });
     }
 
     public boolean isSameMonthAndYear(Calendar calendar, int month, int year) {

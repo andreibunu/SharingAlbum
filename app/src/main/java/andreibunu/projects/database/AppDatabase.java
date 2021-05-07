@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase;
 
 import andreibunu.projects.database.dao.GalleryDao;
 
-@Database(entities = {DatabaseImage.class}, version = 1)
+@Database(entities = {DatabaseImage.class}, version = 2)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract GalleryDao galleryDao();
 }

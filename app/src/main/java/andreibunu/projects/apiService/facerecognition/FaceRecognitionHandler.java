@@ -25,13 +25,13 @@ public class FaceRecognitionHandler {
         this.databaseHandler = databaseHandler;
     }
 
-    public Single<String> sendImage(File file) {
+    public Single<String> sendImage(File file, String uid) {
 
         return Single.create(emitter -> {
             try {
-                List<Integer> faces = proxy.testImg2(file);
-                String filename = file.getName();
-                Date date = ImageUtils.getDateFromName(filename);
+                List<Integer> faces = proxy.testImg2(file, uid);
+                String filename = file.getAbsolutePath();
+                Date date = ImageUtils.getDateFromName(file.getName());
                 DatabaseImage x = databaseHandler.insertImage(filename, date.toString(), faces.toString(), "", "").blockingGet();
                 emitter.onSuccess(faces.toString());
             } catch (Exception e) {

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "963448243458",
+    "firebase_url": "https://perfectalbum-1adac-default-rtdb.firebaseio.com",
+    "project_id": "perfectalbum-1adac",
+    "storage_bucket": "perfectalbum-1adac.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:963448243458:android:6135347e80a6fc165cae1b",
+        "android_client_info": {
+          "package_name": "andreibunu.projects"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "963448243458-15s0vpi7cj7bvt7vpnmfgujgjt6pbive.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMq0rfoEMT_6Ijp__6cPYhjhGhUJhIsX4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "963448243458-15s0vpi7cj7bvt7vpnmfgujgjt6pbive.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

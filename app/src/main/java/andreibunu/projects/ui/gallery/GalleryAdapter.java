@@ -21,7 +21,6 @@ import andreibunu.projects.utils.UiUtils;
 public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder> {
 
     private static PhotoPairItemViewDiffCallBack diffCallback = new PhotoPairItemViewDiffCallBack();
-    private Context context;
 
     protected GalleryAdapter() {
         super(diffCallback);
@@ -30,7 +29,7 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        this.context = parent.getContext();
+        Context context = parent.getContext();
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         if (viewType == 0) {
             View view = layoutInflater.inflate(R.layout.gallery_pair, parent, false);
@@ -76,7 +75,6 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
         }
 
         public void onBind(PhotoPair item) {
-//            setDims(item);
             Glide.with(context)
                     .load(item.getLeft().getAbsolutePath())
                     .placeholder(R.drawable.placeholder_square)
@@ -91,45 +89,6 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
             }
             else{
                 rightConstraint.setVisibility(View.GONE);
-            }
-        }
-
-        private void setDims(PhotoPair item) {
-            int width = UiUtils.getScreenWidth();
-            if (item.getLeftOrientation() == PhotoPair.Orientation.PORTRAIT &&
-                    item.getRightOrientation() == PhotoPair.Orientation.PORTRAIT) {
-                left.getLayoutParams().width = width / 3;
-                left.getLayoutParams().height = 400;
-
-                right.getLayoutParams().width = width / 3;
-                right.getLayoutParams().height = 400;
-            }
-
-            if (item.getLeftOrientation() == PhotoPair.Orientation.PORTRAIT &&
-                    item.getRightOrientation() == PhotoPair.Orientation.LANDSCAPE) {
-                left.getLayoutParams().width = 100;
-                left.getLayoutParams().height = 200;
-
-                right.getLayoutParams().width = 400;
-                right.getLayoutParams().height = 200;
-            }
-
-            if (item.getLeftOrientation() == PhotoPair.Orientation.LANDSCAPE &&
-                    item.getRightOrientation() == PhotoPair.Orientation.PORTRAIT) {
-                right.getLayoutParams().width = 400;
-                right.getLayoutParams().height = 200;
-
-                right.getLayoutParams().width = 100;
-                right.getLayoutParams().height = 200;
-            }
-
-            if (item.getLeftOrientation() == PhotoPair.Orientation.LANDSCAPE &&
-                    item.getRightOrientation() == PhotoPair.Orientation.LANDSCAPE) {
-                left.getLayoutParams().height = 100;
-                left.getLayoutParams().width = 200;
-
-                right.getLayoutParams().height = 100;
-                right.getLayoutParams().width = 200;
             }
         }
     }

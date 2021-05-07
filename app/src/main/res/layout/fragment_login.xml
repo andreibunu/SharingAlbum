@@ -47,7 +47,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/login_topper_constraint" />
 
-
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/login_username_layout"
         android:layout_width="334dp"
@@ -65,6 +64,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:hint="@string/username"
+            android:text="bunuraduandrei@gmail.com"
             android:inputType="none"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
@@ -90,6 +90,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:hint="@string/password"
+            android:text="parola"
             android:inputType="textPassword"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"

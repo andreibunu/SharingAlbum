@@ -71,6 +71,8 @@ public class ImageUtils {
 
     public static File saveBitmapToFile(File file){
         try {
+            ExifInterface oldExif = new ExifInterface(file.getAbsolutePath());
+            String exifOrientation = oldExif.getAttribute(ExifInterface.TAG_ORIENTATION);
             // BitmapFactory options to downsize the image
             BitmapFactory.Options o = new BitmapFactory.Options();
             o.inJustDecodeBounds = true;
@@ -103,6 +105,11 @@ public class ImageUtils {
             FileOutputStream outputStream = new FileOutputStream(file);
 
             selectedBitmap.compress(Bitmap.CompressFormat.JPEG, 100 , outputStream);
+            if (exifOrientation != null) {
+                ExifInterface newExif = new ExifInterface(file.getAbsolutePath());
+                newExif.setAttribute(ExifInterface.TAG_ORIENTATION, exifOrientation);
+                newExif.saveAttributes();
+            }
 
             return file;
         } catch (Exception e) {

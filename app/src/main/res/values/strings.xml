@@ -32,4 +32,7 @@
     <string name="theme_black">Cool Black</string>
     <string name="theme_info">This feature is yet to be implemented</string>
     <string name="save">Save</string>
+    <string name="friends">Friends</string>
+    <string name="save_and_go_back">Save and Go Back</string>
+    <string name="cancel">Cancel</string>
 </resources>

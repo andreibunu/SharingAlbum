@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 
 import andreibunu.projects.R;
-import andreibunu.projects.utils.UiUtils;
 
 public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder> {
 
@@ -26,6 +25,13 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
         super(diffCallback);
     }
 
+    /**
+     * DESIGN PATTERN, STRUCTURAL : ADAPTER
+     * GalleryAdapter uses RecycleView.ViewHolder abstract class
+     * A viewHolder is used to display an object inside the list
+     * The object needs to be an instance pf a class extending RecycleView.ViewHolder
+     * based on the type of the object, two objects (DateViewHolder and PhotoViewHolder) are used
+     */
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -39,12 +45,12 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
         return new GalleryAdapter.DateViewHolder(view);
     }
 
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        if(getItem(position) instanceof PhotoPair) {
+        if (getItem(position) instanceof PhotoPair) {
             ((PhotoViewHolder) holder).onBind((PhotoPair) getItem(position));
-        }
-        else{
+        } else {
             ((DateViewHolder) holder).onBind((String) getItem(position));
         }
     }
@@ -86,8 +92,7 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
                         .into(right);
                 rightConstraint.setVisibility(View.VISIBLE);
 
-            }
-            else{
+            } else {
                 rightConstraint.setVisibility(View.GONE);
             }
         }

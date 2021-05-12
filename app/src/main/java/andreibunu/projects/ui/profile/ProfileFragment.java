@@ -2,18 +2,18 @@ package andreibunu.projects.ui.profile;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.view.ViewCompat;
-import androidx.fragment.app.FragmentTransaction;
-
 import android.transition.Transition;
 import android.transition.TransitionInflater;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.view.ViewCompat;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -28,12 +28,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import andreibunu.projects.R;
 import andreibunu.projects.databinding.FragmentProfileBinding;
 import andreibunu.projects.ui.base.BaseFragment;
+import andreibunu.projects.ui.filter.adapter.FilterFriendsAdapter;
+import andreibunu.projects.ui.filter.adapter.domain.FriendFilter;
+import andreibunu.projects.ui.friends.FriendFragment;
 
 
 public class ProfileFragment extends BaseFragment {
@@ -43,15 +48,12 @@ public class ProfileFragment extends BaseFragment {
     private FragmentProfileBinding binding;
     private FirebaseUser firebaseUser;
     private DatabaseReference myRef;
+    private List<FriendFilter> friendsList;
+    private FilterFriendsAdapter friendsAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Transition sharedElementsTransition = TransitionInflater.from(getActivity())
-                .inflateTransition(R.transition.shared_image);
-        Transition sharedElementReturnTransition = TransitionInflater.from(getActivity())
-                .inflateTransition(R.transition.shared_image);
 
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
@@ -61,6 +63,21 @@ public class ProfileFragment extends BaseFragment {
         FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
         myRef = firebaseDatabase.getReference("users").child(firebaseUser.getUid());
 
+        initializeAdapter();
+        getPeople();
+    }
+
+    private void initializeAdapter() {
+        friendsList = new ArrayList<>();
+        this.friendsAdapter = new FilterFriendsAdapter(friendFilter -> {
+            FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction();
+            FriendFragment fragment = new FriendFragment();
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("friend", friendFilter);
+            fragment.setArguments(bundle);
+            ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
+            ft.commit();
+        });
     }
 
     @Override
@@ -86,6 +103,7 @@ public class ProfileFragment extends BaseFragment {
         ViewCompat.setTransitionName(binding.user, "transition");
         setUserData();
         setDatabaseUserData();
+        setFriendsAdapter();
 
     }
 
@@ -111,7 +129,29 @@ public class ProfileFragment extends BaseFragment {
         Glide.with(getContext())
                 .load(firebaseUser.getPhotoUrl())
                 .into(binding.user);
+    }
 
+
+    private void getPeople() {
+        myRef.child("friends").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                friendsList.clear();
+                snapshot.getChildren().forEach(friend -> {
+                    if (Objects.equals(friend.child("duplicate").getValue(String.class), "0")) {
+                        FriendFilter friendFilter = new FriendFilter(friend.child("name").getValue(String.class),
+                                friend.child("face").getValue(String.class), friend.child("id").getValue(String.class));
+                        friendsList.add(friendFilter);
+                    }
+                });
+                friendsAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                //TODO handle fb server error
+            }
+        });
     }
 
     @Override
@@ -144,5 +184,11 @@ public class ProfileFragment extends BaseFragment {
         });
     }
 
+    private void setFriendsAdapter() {
+        binding.friendsRv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        binding.friendsRv.setAdapter(friendsAdapter);
+        friendsAdapter.submitList(friendsList);
+        friendsAdapter.notifyDataSetChanged();
+    }
 
 }

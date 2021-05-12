@@ -1,6 +1,8 @@
 package andreibunu.projects.ui.filter.adapter.domain;
 
-public class FriendFilter {
+import java.io.Serializable;
+
+public class FriendFilter implements Serializable {
     private String name;
     private String url;
     private String id;

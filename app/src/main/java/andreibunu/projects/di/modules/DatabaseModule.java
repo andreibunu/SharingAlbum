@@ -17,6 +17,17 @@ public class DatabaseModule {
     @Singleton
     @Provides
     AppDatabase provideDatabase(Application application) {
+        /**
+         * Design Pattern, Creational : BUILDER
+         * Room.databaseBuilder(Context,     RoomDatabase,         String)
+         *                      not null        not null           not null
+         *                                                  not empty without spaces
+         *
+         *  will also set JournalMode on AUTOMATIC
+         *  will also set mRequireMigration to TRUE
+         *  will create a MigrationContainer for the database
+         */
+
         return Room.databaseBuilder(application.getApplicationContext(), AppDatabase.class, DATABASE_NAME)
                 .fallbackToDestructiveMigration()
                 .build();

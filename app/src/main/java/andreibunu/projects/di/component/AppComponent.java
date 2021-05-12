@@ -8,6 +8,7 @@ import andreibunu.projects.di.modules.ApiModule;
 import andreibunu.projects.di.modules.AppModule;
 import andreibunu.projects.di.modules.ClientModule;
 import andreibunu.projects.di.modules.DatabaseModule;
+import andreibunu.projects.ui.friends.FriendFragment;
 import andreibunu.projects.ui.gallery.GalleryTypeFragment;
 import andreibunu.projects.ui.login.LoginFragment;
 import dagger.Component;
@@ -20,4 +21,6 @@ public interface AppComponent {
     void inject(GalleryTypeFragment galleryTypeFragment);
 
     void inject(LoginFragment loginFragment);
+
+    void inject(FriendFragment friendFragment);
 }

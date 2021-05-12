@@ -10,6 +10,8 @@
     <color name="textColorBlack40">#66000000</color>
     <color name="white_hint75">#BFFFFFFF</color>
     <color name="colorPrimary90">#E60066FF</color>
+    <color name="colorPrimary50">#800066FF</color>
+
     <color name="black90">#CC000000</color>
     <color name="gradient_color_center">#CC0090FF</color>
 

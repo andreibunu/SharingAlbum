@@ -61,10 +61,7 @@ public class FilterFragment extends BaseFragment {
         myRef = firebaseDatabase.getReference("users").child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).child("friends");
 
         initializeAdapters();
-//        Transition sharedElementsTransition = TransitionInflater.from(getActivity())
-//                .inflateTransition(R.transition.shared_image);
-//        Transition sharedElementReturnTransition = TransitionInflater.from(getActivity())
-//                .inflateTransition(R.transition.shared_image);
+        getPeople();
     }
 
     private void initializeAdapters() {
@@ -76,7 +73,6 @@ public class FilterFragment extends BaseFragment {
                 filterChosenFriendsAdapter.notifyDataSetChanged();
             }
         });
-        filterFriendsAdapter.submitList(friendToChooseList);
 
         //chosen friends
         chosenFriendsList = new ArrayList<>();
@@ -85,7 +81,6 @@ public class FilterFragment extends BaseFragment {
             chosenFriendsList.remove(index);
             filterChosenFriendsAdapter.notifyItemRemoved(index);
         });
-        filterChosenFriendsAdapter.submitList(chosenFriendsList);
 
     }
 
@@ -113,18 +108,28 @@ public class FilterFragment extends BaseFragment {
     private void setChosenFriends() {
         binding.filterWhoRv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.filterWhoRv.setAdapter(filterChosenFriendsAdapter);
+        filterChosenFriendsAdapter.submitList(chosenFriendsList);
+
     }
 
     private void setFriendChooserRecycleView() {
         binding.chooseWhoRv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.chooseWhoRv.setAdapter(filterFriendsAdapter);
+        filterFriendsAdapter.submitList(friendToChooseList);
+        filterFriendsAdapter.notifyDataSetChanged();
+    }
+
+    private void getPeople() {
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                friendToChooseList.clear();
                 snapshot.getChildren().forEach(friend -> {
-                    FriendFilter friendFilter = new FriendFilter(friend.child("name").getValue(String.class),
-                            friend.child("face").getValue(String.class), friend.child("id").getValue(String.class));
-                    friendToChooseList.add(friendFilter);
+                    if (friend.hasChild("duplicate") && friend.child("duplicate").getValue(String.class).equals("0")) {
+                        FriendFilter friendFilter = new FriendFilter(friend.child("name").getValue(String.class),
+                                friend.child("face").getValue(String.class), friend.child("id").getValue(String.class));
+                        friendToChooseList.add(friendFilter);
+                    }
                 });
                 filterFriendsAdapter.notifyDataSetChanged();
             }

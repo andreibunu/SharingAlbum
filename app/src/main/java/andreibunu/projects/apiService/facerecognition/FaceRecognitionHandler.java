@@ -5,6 +5,7 @@ import android.util.Log;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -26,16 +27,16 @@ public class FaceRecognitionHandler {
     }
 
     public Single<String> sendImage(File file, String uid) {
-
         return Single.create(emitter -> {
             try {
                 List<Integer> faces = proxy.testImg2(file, uid);
                 String filename = file.getAbsolutePath();
                 Date date = ImageUtils.getDateFromName(file.getName());
-                DatabaseImage x = databaseHandler.insertImage(filename, date.toString(), faces.toString(), "", "").blockingGet();
+                DatabaseImage x = databaseHandler.insertImage(filename, date.toString(), faces.toString(),
+                        "", "").blockingGet();
                 emitter.onSuccess(faces.toString());
             } catch (Exception e) {
-                Log.e(TAG, "getProducts: " + e.getMessage());
+                Log.e(TAG, Objects.requireNonNull(e.getMessage()));
                 emitter.onError(e);
             }
         });

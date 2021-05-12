@@ -1,18 +1,22 @@
 package andreibunu.projects.database.dao;
 
+import android.database.Cursor;
+
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
-
-import java.util.List;
+import androidx.room.Update;
 
 import andreibunu.projects.database.DatabaseImage;
 
 @Dao
 public interface GalleryDao {
     @Query("select * from images")
-    List<DatabaseImage> getImages();
+    Cursor getImages();
 
     @Insert
     void insertImage(DatabaseImage image);
+
+    @Update
+    void update(DatabaseImage image);
 }

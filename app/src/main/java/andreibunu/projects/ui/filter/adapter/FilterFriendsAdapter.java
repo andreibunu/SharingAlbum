@@ -43,7 +43,7 @@ public class FilterFriendsAdapter extends ListAdapter<FriendFilter, RecyclerView
         ((FriendViewHolder) holder).onBind(getItem(position));
         holder.itemView.setOnClickListener(v -> {
             ((FriendViewHolder) holder).image.setBorderWidth(4);
-            clickListener.chooseFriend(((FriendViewHolder) holder).friend);
+            clickListener.onClick(((FriendViewHolder) holder).friend);
         });
     }
 
@@ -85,6 +85,6 @@ public class FilterFriendsAdapter extends ListAdapter<FriendFilter, RecyclerView
     }
 
     public interface ClickListener {
-        void chooseFriend(FriendFilter friendFilter);
+        void onClick(FriendFilter friendFilter);
     }
 }

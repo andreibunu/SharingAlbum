@@ -59,6 +59,8 @@ public class GalleryTypeFragment extends BaseFragment {
     FirebaseUser firebaseAuth;
 
     public static final int EXTERNAL_STORAGE_REQUEST_CODE = 101;
+    public static final int EXTERNAL_STORAGE_REQUEST_CODE_WRITE = 102;
+
     List<Object> phonePhotos;
     GalleryAdapter adapter;
     FilterList filterList;
@@ -99,7 +101,8 @@ public class GalleryTypeFragment extends BaseFragment {
     }
 
     @Override
-    protected void attach() {}
+    protected void attach() {
+    }
 
     @Override
     protected int getLayoutResourceId() {
@@ -115,6 +118,12 @@ public class GalleryTypeFragment extends BaseFragment {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == EXTERNAL_STORAGE_REQUEST_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                beginProcess();
+            }
+        }
+
+        if (requestCode == EXTERNAL_STORAGE_REQUEST_CODE_WRITE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 beginProcess();
             }
@@ -137,10 +146,16 @@ public class GalleryTypeFragment extends BaseFragment {
         if (ActivityCompat.checkSelfPermission(Objects.requireNonNull(getContext()),
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    EXTERNAL_STORAGE_REQUEST_CODE);
+                    EXTERNAL_STORAGE_REQUEST_CODE_WRITE);
         }
     }
 
+
+    /**
+     * DESIGN PATTERNS, Behavioral : Observable
+     * Observable objects will emit values.
+     * The observer (subscriber) listens to data and acts when received
+     */
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void beginProcess() {
         disposables.add(this.databaseHandler.getImages().observeOn(AndroidSchedulers.mainThread())
@@ -231,6 +246,7 @@ public class GalleryTypeFragment extends BaseFragment {
             }
         }
         updateList(ret);
+
     }
 
     private boolean checkIfPeopleAppear(List<Integer> people) {
@@ -259,13 +275,17 @@ public class GalleryTypeFragment extends BaseFragment {
 
     private void createPairs(List<PhonePhoto> all) {
         phonePhotos.clear();
+        if (all.size() == 0) {
+            //todo what is it supposed to do here? la iubitu ii place tastatura luata de min ehihiihihihih
+            return;
+        }
         Calendar calendarCurrent = getCalendar(all.get(0));
         int year = calendarCurrent.get(Calendar.YEAR);
         int month = calendarCurrent.get(Calendar.MONTH);
 
         this.phonePhotos.add(ImageUtils.getMonthForInt(month) + ", " + year);
         int i;
-        for (i = 0; i < all.size() - 2; i += 2) {
+        for (i = 0; i <= all.size() - 2; i += 2) {
             calendarCurrent = getCalendar(all.get(i));
             Calendar calendarNext = getCalendar(all.get(i + 1));
 
@@ -287,10 +307,6 @@ public class GalleryTypeFragment extends BaseFragment {
         }
         adapter.notifyDataSetChanged();
     }
-
-
-
-
 
     private Calendar getCalendar(PhonePhoto phonePhoto) {
         Calendar calendarCurrent = Calendar.getInstance();

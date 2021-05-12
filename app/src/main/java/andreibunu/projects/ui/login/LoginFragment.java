@@ -54,7 +54,7 @@ public class LoginFragment extends BaseFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setLoginListsner(view);
+        setLoginListener(view);
         setRegisterListener(view);
     }
 
@@ -71,7 +71,7 @@ public class LoginFragment extends BaseFragment {
     protected void injectDependencies() {
     }
 
-    private void setLoginListsner(View view) {
+    private void setLoginListener(View view) {
         Button login = view.findViewById(R.id.login_login_btn);
         login.setOnClickListener(v -> firebaseAuth.signInWithEmailAndPassword(
                 Objects.requireNonNull(binding.loginUsernameEt.getText()).toString(),

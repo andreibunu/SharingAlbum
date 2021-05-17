@@ -1,5 +1,6 @@
 package andreibunu.projects.ui.friends;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,16 +21,24 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.inject.Inject;
 
 import andreibunu.projects.App;
 import andreibunu.projects.database.DatabaseHandler;
+import andreibunu.projects.database.DatabaseImage;
 import andreibunu.projects.databinding.FragmentFriendBinding;
 import andreibunu.projects.ui.filter.adapter.FilterFriendsAdapter;
 import andreibunu.projects.ui.filter.adapter.domain.FriendFilter;
@@ -47,11 +56,14 @@ public class FriendFragment extends Fragment {
     private List<FriendFilter> duplicates;
     private List<FriendFilter> friendsList;
     private FilterFriendsAdapter friendsAdapter;
+    private DatabaseReference usersInstance;
     protected CompositeDisposable disposables = new CompositeDisposable();
-
+    private boolean shouldLink = true;
 
     @Inject
     DatabaseHandler databaseHandler;
+    private FirebaseUser firebaseUser;
+    private String username;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,15 +73,33 @@ public class FriendFragment extends Fragment {
             this.friendFilter = (FriendFilter) bundle.getSerializable("friend");
         }
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+        firebaseUser = firebaseAuth.getCurrentUser();
         FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
         friendDbInstance = firebaseDatabase.getReference("users").child(Objects.requireNonNull(firebaseUser).getUid()).child("friends").child(friendFilter.getId());
         friendsDbList = firebaseDatabase.getReference("users").child(firebaseUser.getUid()).child("friends");
+        usersInstance = firebaseDatabase.getReference("users");
+        getCurrentUserUsername();
 
     }
 
+    private void getCurrentUserUsername() {
+        FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = firebaseDatabase.getReference("users").child(firebaseUser.getUid());
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                username = snapshot.child("username").getValue(String.class);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         initializeAdapter();
@@ -90,9 +120,7 @@ public class FriendFragment extends Fragment {
 
     private void initializeAdapter() {
         friendsList = new ArrayList<>();
-        this.friendsAdapter = new FilterFriendsAdapter(friendFilter -> {
-            duplicates.add(friendFilter);
-        });
+        this.friendsAdapter = new FilterFriendsAdapter(friendFilter -> duplicates.add(friendFilter));
     }
 
     private void getPeople() {
@@ -101,8 +129,8 @@ public class FriendFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 friendsList.clear();
                 snapshot.getChildren().forEach(friend -> {
-                    if (!friend.child("id").getValue(String.class).equals(friendFilter.getId())
-                            && friend.child("duplicate").getValue(String.class).equals("0")) {
+                    if (!Objects.equals(friend.child("id").getValue(String.class), friendFilter.getId())
+                            && Objects.equals(friend.child("duplicate").getValue(String.class), "0")) {
                         FriendFilter friendFilter = new FriendFilter(friend.child("name").getValue(String.class),
                                 friend.child("face").getValue(String.class), friend.child("id").getValue(String.class));
                         friendsList.add(friendFilter);
@@ -120,6 +148,8 @@ public class FriendFragment extends Fragment {
 
     private void setFriendsAdapter() {
         binding.friendsRv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        FriendDecorator friendDecorator = new FriendDecorator();
+        binding.friendsRv.addItemDecoration(friendDecorator);
         binding.friendsRv.setAdapter(friendsAdapter);
         friendsAdapter.submitList(friendsList);
         friendsAdapter.notifyDataSetChanged();
@@ -136,6 +166,8 @@ public class FriendFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 binding.name.setText(snapshot.child("name").getValue(String.class));
+                String friendUsername = snapshot.child("username").getValue(String.class);
+                shouldLink = Objects.equals(friendUsername, "not set");
                 binding.username.setText(snapshot.child("username").getValue(String.class));
                 Glide.with(Objects.requireNonNull(getContext()))
                         .load(snapshot.child("face").getValue(String.class))
@@ -156,6 +188,9 @@ public class FriendFragment extends Fragment {
                 .setValue(Objects.requireNonNull(binding.name.getText()).toString());
         mergePeopleInFirebaseDatabase();
         mergePeopleInLocalDatabase();
+        if (shouldLink) {
+            linkAccount();
+        }
     }
 
     private void mergePeopleInFirebaseDatabase() {
@@ -200,5 +235,70 @@ public class FriendFragment extends Fragment {
                                         }));
                     });
                 }));
+    }
+
+    public void linkAccount() {
+        List<DatabaseImage> imagesToSend = new ArrayList<>();
+        disposables.add(databaseHandler.getImages().observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(images -> {
+                    images.forEach(image -> {
+                        if (image.getPerson().contains(friendFilter.getId())) {
+                            imagesToSend.add(image);
+                        }
+                    });
+                    addCommonImages(imagesToSend);
+                }));
+    }
+
+    private void addCommonImages(List<DatabaseImage> imagesToSend) {
+        String friendUsername = binding.username.getText().toString();
+        usersInstance.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot user : snapshot.getChildren()) {
+                    if (Objects.equals(user.child("username").getValue(String.class), friendUsername)) {
+                        AtomicLong index = new AtomicLong(user.child("photos").getChildrenCount());
+                        imagesToSend.forEach(img -> {
+                            addCommonItemInfo(user, index.getAndIncrement(), img);
+                            addImageCommon(img, friendUsername, user, index.get());
+                        });
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    private void addImageCommon(DatabaseImage img, String friendUsername, DataSnapshot user, long index) {
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        Uri file = Uri.fromFile(new File(img.getImageName()));
+        StorageReference riversRef = storageRef.child(firebaseUser.getUid()).child("shared").child(friendUsername);
+
+        riversRef.listAll().addOnSuccessListener(listResult -> {
+            //todo imagename is absolute path rn, a/b/c/d/e... will create inner directories in firebase storage
+            //working tho
+            UploadTask uploadTask = riversRef.child(img.getImageName()).putFile(file);
+            uploadTask.continueWithTask(task -> riversRef.child(img.getImageName()).getDownloadUrl()).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Uri downloadUri = task.getResult();
+                    user.child("photos").child((index - 1) + "").child("url").getRef().setValue(Objects.requireNonNull(downloadUri).toString());
+                }
+            });
+
+        });
+    }
+
+    private void addCommonItemInfo(DataSnapshot user, long index, DatabaseImage date) {
+        user.child("photos").child(index + "").child("from").getRef().setValue(username);
+        user.child("photos").child(index + "").child("tags").getRef().setValue("");
+        user.child("photos").child(index + "").child("date").getRef().setValue(date.getDate());
+        user.child("photos").child(index + "").child("people").getRef().setValue("");
+
     }
 }

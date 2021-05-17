@@ -16,6 +16,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 
 import andreibunu.projects.R;
+import andreibunu.projects.ui.gallery.domain.FriendPhotoPair;
+import andreibunu.projects.ui.gallery.domain.PhotoPair;
 
 public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder> {
 
@@ -51,19 +53,27 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
         if (getItem(position) instanceof PhotoPair) {
             ((PhotoViewHolder) holder).onBind((PhotoPair) getItem(position));
         } else {
-            ((DateViewHolder) holder).onBind((String) getItem(position));
+            if (getItem(position) instanceof FriendPhotoPair) {
+                ((PhotoViewHolder) holder).onBind((FriendPhotoPair) getItem(position));
+            } else {
+                ((DateViewHolder) holder).onBind((String) getItem(position));
+            }
         }
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (getItem(position) instanceof PhotoPair)
+        if (getItem(position) instanceof PhotoPair || getItem(position) instanceof FriendPhotoPair)
             return 0;
+//        if (getItem(position) instanceof FriendPhotoPair)
+//            return 1;
+
         return 1;
     }
 
 
     public static class PhotoViewHolder extends RecyclerView.ViewHolder {
+
 
         private final ConstraintLayout rightConstraint;
         private Context context;
@@ -88,6 +98,23 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
             if (item.getRight() != null) {
                 Glide.with(context)
                         .load(item.getRight().getAbsolutePath())
+                        .placeholder(R.drawable.placeholder_square)
+                        .into(right);
+                rightConstraint.setVisibility(View.VISIBLE);
+
+            } else {
+                rightConstraint.setVisibility(View.GONE);
+            }
+        }
+
+        public void onBind(FriendPhotoPair item) {
+            Glide.with(context)
+                    .load(item.getLeft().getUrl())
+                    .placeholder(R.drawable.placeholder_square)
+                    .into(left);
+            if (item.getRight() != null) {
+                Glide.with(context)
+                        .load(item.getRight().getUrl())
                         .placeholder(R.drawable.placeholder_square)
                         .into(right);
                 rightConstraint.setVisibility(View.VISIBLE);

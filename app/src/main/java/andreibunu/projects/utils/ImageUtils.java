@@ -45,6 +45,7 @@ public class ImageUtils {
     }
 
     public static Date getDateFromName(String name) throws ParseException {
+        name = name.replaceFirst("IMG_", "");
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US);
         return formatter.parse(name.substring(0, 8) + name.substring(9, 15));
     }
@@ -69,7 +70,7 @@ public class ImageUtils {
     }
 
 
-    public static File saveBitmapToFile(File file){
+    public static File saveBitmapToFile(File file) {
         try {
             ExifInterface oldExif = new ExifInterface(file.getAbsolutePath());
             String exifOrientation = oldExif.getAttribute(ExifInterface.TAG_ORIENTATION);
@@ -84,11 +85,11 @@ public class ImageUtils {
             inputStream.close();
 
             // The new size we want to scale to
-            final int REQUIRED_SIZE=75;
+            final int REQUIRED_SIZE = 75;
 
             // Find the correct scale value. It should be the power of 2.
             int scale = 1;
-            while(o.outWidth / scale / 2 >= REQUIRED_SIZE &&
+            while (o.outWidth / scale / 2 >= REQUIRED_SIZE &&
                     o.outHeight / scale / 2 >= REQUIRED_SIZE) {
                 scale *= 2;
             }
@@ -104,7 +105,7 @@ public class ImageUtils {
             file.createNewFile();
             FileOutputStream outputStream = new FileOutputStream(file);
 
-            selectedBitmap.compress(Bitmap.CompressFormat.JPEG, 100 , outputStream);
+            selectedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
             if (exifOrientation != null) {
                 ExifInterface newExif = new ExifInterface(file.getAbsolutePath());
                 newExif.setAttribute(ExifInterface.TAG_ORIENTATION, exifOrientation);

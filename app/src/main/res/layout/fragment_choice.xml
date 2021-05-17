@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/login_background"
-    tools:context=".ui.gallery.GalleryFragment">
+    tools:context=".ui.choice.ChoiceFragment">
+
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/gallery_topper_constraint"
+        android:id="@+id/filter_topper_constraint"
         android:layout_width="match_parent"
         android:layout_height="46dp"
         android:background="@drawable/topper"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
 
         <TextView
             android:layout_width="164dp"
@@ -33,7 +33,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/gallery_burger"
+            android:id="@+id/filter_burger"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginStart="16dp"
@@ -45,10 +45,11 @@
 
 
         <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/gallery_user"
+            android:id="@+id/filter_user"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_marginEnd="16dp"
+            android:transitionName="transition"
             android:background="@drawable/round_image"
             android:scaleType="centerCrop"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -57,55 +58,30 @@
             tools:src="@drawable/login_background" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <FrameLayout
-        android:id="@+id/gallery_fragment"
-        android:layout_width="match_parent"
-        android:layout_height="700dp"
-        android:layout_marginTop="24dp"
-        android:clipToPadding="false"
-        android:paddingTop="36dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/gallery_topper_constraint" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/gallery_menu_constraint"
-        android:layout_width="match_parent"
-        android:layout_height="90dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/gallery_menu"
+    <Button
+        android:id="@+id/mine"
+        android:layout_width="300dp"
+        android:layout_height="64dp"
+        android:layout_marginTop="200dp"
+        android:background="@drawable/main_button_background"
+        android:text="@string/see_your_photos"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/gallery_topper_constraint">
+        app:layout_constraintTop_toBottomOf="@+id/filter_topper_constraint" />
 
-        <TextView
-            android:id="@+id/gallery_menu_personal"
-            android:layout_width="148dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:gravity="center"
-            android:textColor="@color/colorPrimaryDark"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/gallery_menu_friends"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <Button
+        android:id="@+id/friends"
+        android:layout_width="300dp"
+        android:layout_height="64dp"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/main_button_background"
+        android:text="Photos from Friends"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mine" />
 
-        <TextView
-            android:id="@+id/gallery_menu_friends"
-            android:layout_width="148dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textColor="@color/textColorBlack40"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/gallery_menu_personal"
-            app:layout_constraintTop_toTopOf="@+id/gallery_menu_personal" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,8 +5,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/login_background"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".ui.gallery.GalleryTypeFragment">
-
+    tools:context=".ui.gallery.FriendsGalleryFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/gallery_menu_constraint"
@@ -24,7 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:gravity="center"
-            android:text="@string/your_photos_n"
+            android:text="@string/pics_from_friends_n"
             android:textColor="@color/colorPrimaryDark"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -33,6 +32,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/gallery_rv"
@@ -46,6 +46,5 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/gallery_menu_constraint" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

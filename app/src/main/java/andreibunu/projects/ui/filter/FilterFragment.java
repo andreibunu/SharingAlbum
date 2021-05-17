@@ -32,7 +32,8 @@ import andreibunu.projects.ui.base.BaseFragment;
 import andreibunu.projects.ui.filter.adapter.ChosenFriendsAdapter;
 import andreibunu.projects.ui.filter.adapter.FilterFriendsAdapter;
 import andreibunu.projects.ui.filter.adapter.domain.FriendFilter;
-import andreibunu.projects.ui.gallery.GalleryFragment;
+import andreibunu.projects.ui.gallery.FriendsGalleryFragment;
+import andreibunu.projects.ui.gallery.GalleryTypeFragment;
 import andreibunu.projects.ui.profile.ProfileFragment;
 
 
@@ -45,6 +46,8 @@ public class FilterFragment extends BaseFragment {
     FirebaseDatabase firebaseDatabase;
     FirebaseStorage firebaseStorage;
 
+    private String from;
+
     private List<FriendFilter> friendToChooseList;
     private List<FriendFilter> chosenFriendsList;
     private DatabaseReference myRef;
@@ -54,6 +57,10 @@ public class FilterFragment extends BaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            this.from = bundle.getString("from");
+        }
         firebaseAuth = FirebaseAuth.getInstance();
 
         firebaseStorage = FirebaseStorage.getInstance();
@@ -95,6 +102,9 @@ public class FilterFragment extends BaseFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        if (from.equals("friends")) {
+            binding.filterWhoTv.setText(R.string.from);
+        }
         setDropDownListeners();
         setButtonListener();
         setProfileListener();
@@ -126,9 +136,17 @@ public class FilterFragment extends BaseFragment {
                 friendToChooseList.clear();
                 snapshot.getChildren().forEach(friend -> {
                     if (friend.hasChild("duplicate") && friend.child("duplicate").getValue(String.class).equals("0")) {
-                        FriendFilter friendFilter = new FriendFilter(friend.child("name").getValue(String.class),
-                                friend.child("face").getValue(String.class), friend.child("id").getValue(String.class));
-                        friendToChooseList.add(friendFilter);
+                        if (from.equals("me")) {
+                            FriendFilter friendFilter = new FriendFilter(friend.child("name").getValue(String.class),
+                                    friend.child("face").getValue(String.class), friend.child("id").getValue(String.class));
+                            friendToChooseList.add(friendFilter);
+                        } else {
+                            if (friend.hasChild("photos")) {
+                                FriendFilter friendFilter = new FriendFilter(friend.child("name").getValue(String.class),
+                                        friend.child("face").getValue(String.class), friend.child("id").getValue(String.class));
+                                friendToChooseList.add(friendFilter);
+                            }
+                        }
                     }
                 });
                 filterFriendsAdapter.notifyDataSetChanged();
@@ -177,13 +195,20 @@ public class FilterFragment extends BaseFragment {
 
     private void setButtonListener() {
         binding.btn.setOnClickListener(v -> {
-            FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction();
-            GalleryFragment fragment = new GalleryFragment();
-            Bundle bundle = new Bundle();
             FilterList filterList = getFilterList();
+            Bundle bundle = new Bundle();
             bundle.putSerializable("filters", filterList);
-            fragment.setArguments(bundle);
-            ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
+
+            FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction();
+            if (from.equals("me")) {
+                GalleryTypeFragment fragment = new GalleryTypeFragment(filterList);
+                fragment.setArguments(bundle);
+                ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
+            } else {
+                FriendsGalleryFragment fragment = new FriendsGalleryFragment(filterList);
+                fragment.setArguments(bundle);
+                ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
+            }
             ft.commit();
         });
     }

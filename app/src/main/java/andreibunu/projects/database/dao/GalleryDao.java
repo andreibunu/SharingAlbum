@@ -9,6 +9,10 @@ import androidx.room.Update;
 
 import andreibunu.projects.database.DatabaseImage;
 
+
+/**
+ * DESIGN PATTERN STRUCTURAL, Facade
+ */
 @Dao
 public interface GalleryDao {
     @Query("select * from images")

@@ -22,6 +22,7 @@ import andreibunu.projects.apiService.facerecognition.FaceRecognitionHandler;
 import andreibunu.projects.database.DatabaseHandler;
 import andreibunu.projects.databinding.FragmentLoginBinding;
 import andreibunu.projects.ui.base.BaseFragment;
+import andreibunu.projects.ui.choice.ChoiceFragment;
 import andreibunu.projects.ui.filter.FilterFragment;
 import andreibunu.projects.ui.register.RegisterFragment;
 
@@ -85,8 +86,8 @@ public class LoginFragment extends BaseFragment {
 
     private void goToFilter() {
         FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction();
-        FilterFragment fragment = new FilterFragment();
-        ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
+        ChoiceFragment fragment = new ChoiceFragment();
+        ft.replace(R.id.fragment, fragment);
         ft.commit();
     }
 

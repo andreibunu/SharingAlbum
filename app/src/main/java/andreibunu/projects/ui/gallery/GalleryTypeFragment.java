@@ -39,6 +39,7 @@ import andreibunu.projects.domain.PhonePhoto;
 import andreibunu.projects.ui.base.BaseFragment;
 import andreibunu.projects.ui.filter.FilterList;
 import andreibunu.projects.ui.filter.adapter.domain.FriendFilter;
+import andreibunu.projects.ui.gallery.domain.PhotoPair;
 import andreibunu.projects.utils.ImageUtils;
 import andreibunu.projects.utils.Utils;
 import io.reactivex.SingleObserver;

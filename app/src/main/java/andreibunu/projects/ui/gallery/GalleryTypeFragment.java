@@ -12,7 +12,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,8 +22,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.io.File;
+import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -35,11 +40,13 @@ import andreibunu.projects.R;
 import andreibunu.projects.apiService.facerecognition.FaceRecognitionHandler;
 import andreibunu.projects.database.DatabaseHandler;
 import andreibunu.projects.database.DatabaseImage;
+import andreibunu.projects.domain.FriendPhoto;
 import andreibunu.projects.domain.PhonePhoto;
 import andreibunu.projects.ui.base.BaseFragment;
 import andreibunu.projects.ui.filter.FilterList;
 import andreibunu.projects.ui.filter.adapter.domain.FriendFilter;
 import andreibunu.projects.ui.gallery.domain.PhotoPair;
+import andreibunu.projects.ui.image.ImageFragment;
 import andreibunu.projects.utils.ImageUtils;
 import andreibunu.projects.utils.Utils;
 import io.reactivex.SingleObserver;
@@ -66,6 +73,8 @@ public class GalleryTypeFragment extends BaseFragment {
     GalleryAdapter adapter;
     FilterList filterList;
     protected CompositeDisposable disposables = new CompositeDisposable();
+    List<PhonePhoto> listOfPhotos;
+    private ConstraintLayout progressBar;
 
     public GalleryTypeFragment(FilterList filtersList) {
         this.filterList = filtersList;
@@ -75,7 +84,25 @@ public class GalleryTypeFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         phonePhotos = new ArrayList<>();
-        adapter = new GalleryAdapter();
+        listOfPhotos = new ArrayList<>();
+        adapter = new GalleryAdapter(new GalleryAdapter.ClickListener() {
+            @Override
+            public void onClick(PhonePhoto phonePhoto) {
+                FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction();
+                ImageFragment fragment = new ImageFragment();
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("list", (Serializable) listOfPhotos);
+                bundle.putString("index", listOfPhotos.indexOf(phonePhoto) + "");
+                fragment.setArguments(bundle);
+                ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
+                ft.commit();
+            }
+
+            @Override
+            public void onClick(FriendPhoto friendFilter) {
+                //nothing to do here
+            }
+        });
         adapter.submitList(phonePhotos);
         firebaseAuth = FirebaseAuth.getInstance().getCurrentUser();
     }
@@ -94,6 +121,7 @@ public class GalleryTypeFragment extends BaseFragment {
         App.getInstance().getAppComponent().inject(this);
         RecyclerView recyclerView = view.findViewById(R.id.gallery_rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        progressBar = view.findViewById(R.id.gallery_progress_bar);
         recyclerView.setAdapter(adapter);
         if (phonePhotos.size() == 0) {
             checkWritePermission();
@@ -159,6 +187,7 @@ public class GalleryTypeFragment extends BaseFragment {
      */
     @RequiresApi(api = Build.VERSION_CODES.Q)
     private void beginProcess() {
+        progressBar.setVisibility(View.VISIBLE);
         disposables.add(this.databaseHandler.getImages().observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(this::loadPhotos));
@@ -203,7 +232,8 @@ public class GalleryTypeFragment extends BaseFragment {
     private void sendImages(List<PhonePhoto> photos) {
         int numberOfCalls = photos.size();
         AtomicInteger count = new AtomicInteger(0);
-        photos.forEach(phonePhoto -> handler.sendImage(new File(phonePhoto.getAbsolutePath()), firebaseAuth.getUid()).observeOn(AndroidSchedulers.mainThread())
+        photos.forEach(phonePhoto -> handler.sendImage(new File(phonePhoto.getAbsolutePath()),
+                firebaseAuth.getUid()).observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(new SingleObserver<String>() {
                     @Override
@@ -237,17 +267,44 @@ public class GalleryTypeFragment extends BaseFragment {
                 .subscribe(this::getFilteredPhotos));
     }
 
-    private void getFilteredPhotos(List<DatabaseImage> databaseImages) {
+    private void getFilteredPhotos(List<DatabaseImage> databaseImages) throws ParseException {
         ArrayList<DatabaseImage> ret = new ArrayList<>();
         for (DatabaseImage photo : databaseImages) {
             List<Integer> people = Utils.getListFromStringifiedList(photo.getPerson());
             //check if people contain all the ids in filter list
-            if (checkIfPeopleAppear(people)) {
+            if (checkIfPeopleAppear(people) && checkDate(photo) && checkTags(photo)) {
                 ret.add(photo);
             }
         }
         updateList(ret);
 
+    }
+
+    private boolean checkTags(DatabaseImage photo) {
+        List<String> tags = Arrays.asList(photo.getHashtags().split(" "));
+
+        for (String el : filterList.getTags()) {
+            if (tags.contains(el)) {
+                return true;
+            }
+        }
+        return filterList.getTags().isEmpty();
+    }
+
+    private boolean checkDate(DatabaseImage photo) throws ParseException {
+        File f = new File(photo.getImageName());
+        Date date = ImageUtils.getDateFromName(f.getName());
+        if (filterList.getDate().get(0) != null) {
+            if (filterList.getDate().get(0).compareTo(date) > 0) {
+                return false;
+            }
+        }
+        if (filterList.getDate().get(1) != null) {
+            if (filterList.getDate().get(1).compareTo(date) <= 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean checkIfPeopleAppear(List<Integer> people) {
@@ -275,9 +332,12 @@ public class GalleryTypeFragment extends BaseFragment {
     }
 
     private void createPairs(List<PhonePhoto> all) {
+        listOfPhotos.addAll(all);
         phonePhotos.clear();
         if (all.size() == 0) {
             //todo what is it supposed to do here? la iubitu ii place tastatura luata de min ehihiihihihih
+            progressBar.setVisibility(View.INVISIBLE);
+            adapter.notifyDataSetChanged();
             return;
         }
         Calendar calendarCurrent = getCalendar(all.get(0));
@@ -306,6 +366,7 @@ public class GalleryTypeFragment extends BaseFragment {
         if (all.size() - 1 == i) {
             addPairElement(all.get(i), null);
         }
+        progressBar.setVisibility(View.INVISIBLE);
         adapter.notifyDataSetChanged();
     }
 

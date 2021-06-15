@@ -13,13 +13,9 @@ import retrofit2.http.Part;
 
 public interface FaceRecognitionService {
 
-    @Headers("Content-Type: application/json")
-    @GET("/one")
-    Call<String> test();
-
     @Multipart
     @POST("/imgtest")
-    Call<ImageResponse> testImg(@Part List<MultipartBody.Part> img);
+    Call<ImageResponse> sendImage(@Part List<MultipartBody.Part> img);
 
 
 }

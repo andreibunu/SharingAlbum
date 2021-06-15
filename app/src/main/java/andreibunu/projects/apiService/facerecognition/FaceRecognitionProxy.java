@@ -42,7 +42,7 @@ public class FaceRecognitionProxy {
             MultipartBody.Part uidPart = MultipartBody.Part.createFormData("uid", uid);
             addProductRequest.add(uidPart);
 
-            Response<ImageResponse> response = service.testImg(addProductRequest).execute();
+            Response<ImageResponse> response = service.sendImage(addProductRequest).execute();
             if (response.isSuccessful() && response.body() != null) {
                 Log.d(TAG, response.body().getResult().toString());
                 return response.body().getResult();

@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import andreibunu.projects.R;
 import andreibunu.projects.databinding.FragmentSettingsBinding;
@@ -45,6 +46,7 @@ public class SettingsFragment extends BaseFragment {
 
     private Uri uri;
     private DatabaseReference myRef;
+    private DatabaseReference users;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -52,6 +54,7 @@ public class SettingsFragment extends BaseFragment {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
         FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+        users = firebaseDatabase.getReference("users");
         myRef = firebaseDatabase.getReference("users").child(firebaseUser.getUid());
 
     }
@@ -119,17 +122,48 @@ public class SettingsFragment extends BaseFragment {
 
     private void setSaveListener() {
         binding.save.setOnClickListener(v -> {
-            UserProfileChangeRequest.Builder builder = new UserProfileChangeRequest.Builder();
-            if (uri != null) {
-                builder.setPhotoUri(uri);
-            }
-            if (!Objects.requireNonNull(binding.nameEt.getText()).toString().isEmpty()) {
-                builder.setDisplayName(binding.nameEt.getText().toString());
-            }
-            UserProfileChangeRequest request = builder.build();
-            updateUser(request);
+            binding.progressBar.setVisibility(View.VISIBLE);
+            checkUsername();
         });
+    }
 
+    private void startSavingProcess() {
+        UserProfileChangeRequest.Builder builder = new UserProfileChangeRequest.Builder();
+        if (uri != null) {
+            builder.setPhotoUri(uri);
+        }
+        if (!Objects.requireNonNull(binding.nameEt.getText()).toString().isEmpty()) {
+            builder.setDisplayName(binding.nameEt.getText().toString());
+        }
+        UserProfileChangeRequest request = builder.build();
+        updateUser(request);
+    }
+
+    private void checkUsername() {
+        users.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                AtomicBoolean canBeAdded = new AtomicBoolean(true);
+                snapshot.getChildren().forEach(user -> {
+                    if (user.child("username").getValue(String.class) != null &&
+                            binding.usernameEt.getText() != null &&
+                            user.child("username").getValue(String.class).equals(binding.usernameEt.getText().toString())) {
+                        canBeAdded.set(false);
+                    }
+                });
+                if (canBeAdded.get()) {
+                    startSavingProcess();
+                } else {
+                    Toast.makeText(getContext(), "Username already exists.", Toast.LENGTH_SHORT).show();
+                    binding.progressBar.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
     private void setImageListener() {
@@ -160,13 +194,12 @@ public class SettingsFragment extends BaseFragment {
         firebaseUser.updateProfile(request)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction();
-                        ProfileFragment fragment = new ProfileFragment();
-                        ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
-                        ft.commit();
+                        updateFirebaseDatabase();
+                        binding.progressBar.setVisibility(View.GONE);
+                        Objects.requireNonNull(getFragmentManager()).popBackStack();
                     }
                 });
-        updateFirebaseDatabase();
+
     }
 
     private void updateFirebaseDatabase() {

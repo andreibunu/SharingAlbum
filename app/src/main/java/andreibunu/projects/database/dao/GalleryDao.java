@@ -8,6 +8,7 @@ import androidx.room.Query;
 import androidx.room.Update;
 
 import andreibunu.projects.database.DatabaseImage;
+import retrofit2.http.GET;
 
 
 /**
@@ -23,4 +24,7 @@ public interface GalleryDao {
 
     @Update
     void update(DatabaseImage image);
+
+    @Query("Select * from images where imageName = :dbname")
+    DatabaseImage getImage(String dbname);
 }

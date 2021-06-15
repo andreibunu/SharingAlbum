@@ -37,8 +37,6 @@ public class RegisterFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         firebaseAuth = FirebaseAuth.getInstance();
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("users").child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid());
     }
 
     @Override
@@ -59,17 +57,29 @@ public class RegisterFragment extends BaseFragment {
 
     private void setRegisterListener() {
         binding.registerRegisterBtn.setOnClickListener(v -> {
-            if (Objects.requireNonNull(binding.registerPasswordEt.getText()).toString().equals(
-                    Objects.requireNonNull(binding.registerPasswordConfirmEt.getText()).toString()
-            )) {
-                User user = createUserFromUi();
-                createUserAccount(user);
+            if (binding.registerPasswordEt.getText() == null || binding.registerPasswordConfirmEt.getText() == null ||
+                    binding.registerEmailEt.getText() == null || binding.registerNameEt.getText() == null ||
+                    binding.registerPasswordEt.getText().toString().isEmpty() ||
+                    binding.registerPasswordConfirmEt.getText().toString().isEmpty()
+                    || binding.registerEmailEt.getText().toString().isEmpty()
+                    || binding.registerNameEt.getText().toString().isEmpty()) {
+                Toast.makeText(getContext(), "All fields are necessary", Toast.LENGTH_SHORT).show();
+            } else {
+                if (Objects.requireNonNull(binding.registerPasswordEt.getText()).toString().equals(
+                        Objects.requireNonNull(binding.registerPasswordConfirmEt.getText()).toString()
+                )) {
+                    User user = createUserFromUi();
+                    createUserAccount(user);
+                } else {
+                    Toast.makeText(getContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
 
     private void updateDatabase(User user) {
-        myRef.child("username").setValue(user.getUsername());
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("users").child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid());
         myRef.child("email").setValue(user.getEmail());
         myRef.child("theme").setValue("default");
     }
@@ -77,30 +87,33 @@ public class RegisterFragment extends BaseFragment {
     private void createUserAccount(User user) {
         firebaseAuth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
                 .addOnCompleteListener(task -> {
-                    updateDatabase(user);
-                    FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-                    UserProfileChangeRequest updatedUser = new UserProfileChangeRequest.Builder()
-                            .setDisplayName(user.getName()).build();
-                    if (firebaseUser != null) {
-                        firebaseUser.updateProfile(updatedUser);
-                        firebaseUser.sendEmailVerification();
-                        Toast.makeText(getContext(), "Check your email for the verification email",
-                                Toast.LENGTH_SHORT).show();
-                        goToLogin();
+//                    updateDatabase(user);
+                    if (task.isSuccessful()) {
+                        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                        UserProfileChangeRequest updatedUser = new UserProfileChangeRequest.Builder()
+                                .setDisplayName(user.getName()).build();
+                        if (firebaseUser != null) {
+                            firebaseUser.updateProfile(updatedUser);
+                            firebaseUser.sendEmailVerification();
+                            Toast.makeText(getContext(), "Check your email for the verification email",
+                                    Toast.LENGTH_SHORT).show();
+                            goToLogin();
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Email invalid or already existing", Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
     private User createUserFromUi() {
         return new User(Objects.requireNonNull(binding.registerNameEt.getText()).toString(),
-                Objects.requireNonNull(binding.registerUsernameEt.getText()).toString(),
+                "",
                 Objects.requireNonNull(binding.registerEmailEt.getText()).toString(),
                 Objects.requireNonNull(binding.registerPasswordEt.getText()).toString());
     }
 
     @Override
     protected void attach() {
-
     }
 
     @Override
@@ -114,9 +127,7 @@ public class RegisterFragment extends BaseFragment {
 
     private void setLoginListener(View view) {
         TextView login = view.findViewById(R.id.register_login);
-        login.setOnClickListener(v -> {
-            goToLogin();
-        });
+        login.setOnClickListener(v -> goToLogin());
     }
 
     private void goToLogin() {

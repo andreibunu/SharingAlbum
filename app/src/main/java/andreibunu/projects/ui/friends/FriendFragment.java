@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.inject.Inject;
 
 import andreibunu.projects.App;
+import andreibunu.projects.R;
 import andreibunu.projects.database.DatabaseHandler;
 import andreibunu.projects.database.DatabaseImage;
 import andreibunu.projects.databinding.FragmentFriendBinding;
@@ -59,6 +60,7 @@ public class FriendFragment extends Fragment {
     private DatabaseReference usersInstance;
     protected CompositeDisposable disposables = new CompositeDisposable();
     private boolean shouldLink = true;
+
 
     @Inject
     DatabaseHandler databaseHandler;
@@ -116,7 +118,17 @@ public class FriendFragment extends Fragment {
         setData();
         setButtons();
         setFriendsAdapter();
+        setProfilePicture();
     }
+
+    private void setProfilePicture() {
+        FirebaseAuth user = FirebaseAuth.getInstance();
+        Glide.with(Objects.requireNonNull(getContext()))
+                .load(Objects.requireNonNull(user.getCurrentUser()).getPhotoUrl())
+                .placeholder(R.drawable.profile_placeholder)
+                .into(binding.user);
+    }
+
 
     private void initializeAdapter() {
         friendsList = new ArrayList<>();
@@ -124,7 +136,7 @@ public class FriendFragment extends Fragment {
     }
 
     private void getPeople() {
-        friendsDbList.addValueEventListener(new ValueEventListener() {
+        friendsDbList.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 friendsList.clear();
@@ -157,18 +169,18 @@ public class FriendFragment extends Fragment {
 
 
     private void setButtons() {
-        binding.save.setOnClickListener(v -> updateFirebaseDatabase());
+        binding.save.setOnClickListener(v -> save());
         binding.cancel.setOnClickListener(v -> Objects.requireNonNull(getFragmentManager()).popBackStack());
     }
 
     private void setData() {
-        friendDbInstance.addValueEventListener(new ValueEventListener() {
+        friendDbInstance.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                binding.name.setText(snapshot.child("name").getValue(String.class));
+                binding.name.setText(snapshot.child("name").getValue(String.class).equals("not saved") ? "" : snapshot.child("name").getValue(String.class));
                 String friendUsername = snapshot.child("username").getValue(String.class);
                 shouldLink = Objects.equals(friendUsername, "not set");
-                binding.username.setText(snapshot.child("username").getValue(String.class));
+                binding.username.setText(snapshot.child("username").getValue(String.class).equals("not set") ? "" : snapshot.child("username").getValue(String.class));
                 Glide.with(Objects.requireNonNull(getContext()))
                         .load(snapshot.child("face").getValue(String.class))
                         .into(binding.image);
@@ -181,16 +193,15 @@ public class FriendFragment extends Fragment {
         });
     }
 
-    private void updateFirebaseDatabase() {
+    private void save() {
+        binding.progressBar.setVisibility(View.VISIBLE);
         friendDbInstance.child("username")
                 .setValue(Objects.requireNonNull(binding.username.getText()).toString());
         friendDbInstance.child("name")
                 .setValue(Objects.requireNonNull(binding.name.getText()).toString());
         mergePeopleInFirebaseDatabase();
         mergePeopleInLocalDatabase();
-        if (shouldLink) {
-            linkAccount();
-        }
+
     }
 
     private void mergePeopleInFirebaseDatabase() {
@@ -204,6 +215,7 @@ public class FriendFragment extends Fragment {
         disposables.add(databaseHandler.getImages().observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(images -> {
+                    List<DatabaseImage> duplicatesToShare = new ArrayList<>();
                     int numberOfCalls = images.size();
                     AtomicInteger count = new AtomicInteger(0);
                     images.forEach(image -> {
@@ -212,7 +224,9 @@ public class FriendFragment extends Fragment {
                             for (int i = 0; i < list.size(); i++) {
                                 if (list.get(i).toString().equals(duplicate.getId())) {
                                     list.set(i, Integer.parseInt(friendFilter.getId()));
+                                    duplicatesToShare.add(image);
                                 }
+
                             }
                         });
                         image.setPerson(list.toString());
@@ -223,6 +237,12 @@ public class FriendFragment extends Fragment {
                                             count.incrementAndGet();
                                             Log.d(TAG, "updated indexes with index" + friendFilter.getId());
                                             if (numberOfCalls == count.get()) {
+                                                if (shouldLink) {
+                                                    linkAccount();
+                                                } else {
+                                                    shareDuplicates(duplicatesToShare);
+                                                }
+                                                binding.progressBar.setVisibility(View.GONE);
                                                 Objects.requireNonNull(getFragmentManager()).popBackStack();
                                             }
                                         },
@@ -230,10 +250,30 @@ public class FriendFragment extends Fragment {
                                             count.incrementAndGet();
                                             Log.d(TAG, "error updating indexes: " + fail.getMessage());
                                             if (numberOfCalls == count.get()) {
+                                                if (shouldLink) {
+                                                    linkAccount();
+                                                } else {
+                                                    shareDuplicates(duplicatesToShare);
+                                                }
+                                                binding.progressBar.setVisibility(View.GONE);
                                                 Objects.requireNonNull(getFragmentManager()).popBackStack();
                                             }
                                         }));
                     });
+
+                }));
+    }
+
+    private void shareDuplicates(List<DatabaseImage> imagesToSend) {
+        disposables.add(databaseHandler.getImages().observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(success -> {
+                    success.forEach(dbImg -> duplicates.forEach(duplicate -> {
+                        if (dbImg.getPerson().contains(duplicate.getId())) {
+                            imagesToSend.add(dbImg);
+                        }
+                    }));
+                    addCommonImages(imagesToSend);
                 }));
     }
 
@@ -249,7 +289,9 @@ public class FriendFragment extends Fragment {
                     });
                     addCommonImages(imagesToSend);
                 }));
+
     }
+
 
     private void addCommonImages(List<DatabaseImage> imagesToSend) {
         String friendUsername = binding.username.getText().toString();
@@ -258,11 +300,24 @@ public class FriendFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (DataSnapshot user : snapshot.getChildren()) {
                     if (Objects.equals(user.child("username").getValue(String.class), friendUsername)) {
-                        AtomicLong index = new AtomicLong(user.child("photos").getChildrenCount());
-                        imagesToSend.forEach(img -> {
-                            addCommonItemInfo(user, index.getAndIncrement(), img);
-                            addImageCommon(img, friendUsername, user, index.get());
-                        });
+                        if (shouldLink) {
+                            disposables.add(databaseHandler.insertLink(friendFilter.getId(), binding.username.getText().toString(),
+                                    0, user.getKey()).observeOn(AndroidSchedulers.mainThread())
+                                    .subscribeOn(Schedulers.io())
+                                    .subscribe(afterDbLink -> {
+                                        AtomicLong index = new AtomicLong(user.child("photos").getChildrenCount());
+                                        imagesToSend.forEach(img -> {
+                                            addImageCommon(img, friendUsername, user, index.get());
+                                            addCommonItemInfo(user, index.getAndIncrement(), img);
+                                        });
+                                    }));
+                        } else {
+                            AtomicLong index = new AtomicLong(user.child("photos").getChildrenCount());
+                            imagesToSend.forEach(img -> {
+                                addImageCommon(img, friendUsername, user, index.get());
+                                addCommonItemInfo(user, index.getAndIncrement(), img);
+                            });
+                        }
                         break;
                     }
                 }
@@ -287,7 +342,7 @@ public class FriendFragment extends Fragment {
             uploadTask.continueWithTask(task -> riversRef.child(img.getImageName()).getDownloadUrl()).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     Uri downloadUri = task.getResult();
-                    user.child("photos").child((index - 1) + "").child("url").getRef().setValue(Objects.requireNonNull(downloadUri).toString());
+                    user.child("photos").child((index) + "").child("url").getRef().setValue(Objects.requireNonNull(downloadUri).toString());
                 }
             });
 
@@ -299,6 +354,5 @@ public class FriendFragment extends Fragment {
         user.child("photos").child(index + "").child("tags").getRef().setValue("");
         user.child("photos").child(index + "").child("date").getRef().setValue(date.getDate());
         user.child("photos").child(index + "").child("people").getRef().setValue("");
-
     }
 }

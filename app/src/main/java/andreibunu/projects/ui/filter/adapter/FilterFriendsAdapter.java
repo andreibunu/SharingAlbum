@@ -42,7 +42,13 @@ public class FilterFriendsAdapter extends ListAdapter<FriendFilter, RecyclerView
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ((FriendViewHolder) holder).onBind(getItem(position));
         holder.itemView.setOnClickListener(v -> {
-            ((FriendViewHolder) holder).image.setBorderWidth(4);
+            CircleImageView friend = ((FriendViewHolder) holder).image;
+            if(friend.getBorderWidth() == 4){
+                friend.setBorderWidth(0);
+            }
+            else{
+                friend.setBorderWidth(4);
+            }
             clickListener.onClick(((FriendViewHolder) holder).friend);
         });
     }

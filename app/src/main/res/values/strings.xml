@@ -21,7 +21,7 @@
     <string name="pics_from_friends_n">Pics from Friends</string>
     <string name="menu">Menu</string>
     <string name="image_from_gallery">Image from gallery</string>
-    <string name="who">Who</string>
+    <string name="who">who</string>
     <string name="filter_screen_title">Apply filters and find your photos!</string>
     <string name="when">when</string>
     <string name="where">where</string>
@@ -36,4 +36,13 @@
     <string name="save_and_go_back">Save and Go Back</string>
     <string name="cancel">Cancel</string>
     <string name="from">From</string>
+    <string name="tags">Tags</string>
+    <string name="add_tag">add tag</string>
+    <string name="new_tag">new tag</string>
+    <string name="image_shared_with_you_by">Image shared with you by </string>
+    <string name="processing_progress_bar">We are processing your photos.\nPlease do not close the application.</string>
+    <string name="search_your_tags">Search your tags</string>
+    <string name="search_by_names">Search by names</string>
+    <string name="saving_your_data">Saving your data</string>
+    <string name="logging_you_in">Logging you in...</string>
 </resources>

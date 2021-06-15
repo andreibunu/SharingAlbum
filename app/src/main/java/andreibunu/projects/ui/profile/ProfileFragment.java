@@ -1,5 +1,6 @@
 package andreibunu.projects.ui.profile;
 
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.transition.Transition;
@@ -12,6 +13,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.ViewCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -39,6 +41,9 @@ import andreibunu.projects.ui.base.BaseFragment;
 import andreibunu.projects.ui.filter.adapter.FilterFriendsAdapter;
 import andreibunu.projects.ui.filter.adapter.domain.FriendFilter;
 import andreibunu.projects.ui.friends.FriendFragment;
+import andreibunu.projects.ui.login.LoginFragment;
+
+import static android.content.Context.MODE_PRIVATE;
 
 
 public class ProfileFragment extends BaseFragment {
@@ -104,6 +109,26 @@ public class ProfileFragment extends BaseFragment {
         setUserData();
         setDatabaseUserData();
         setFriendsAdapter();
+        setLogoutListener();
+
+    }
+
+    private void setLogoutListener() {
+        binding.logout.setOnClickListener(v -> {
+            SharedPreferences sharedPreferences = getContext().getSharedPreferences("SHARED_PREF", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("USERNAME", "-1");
+            editor.putString("PASSWORD", "-1");
+            editor.apply();
+            FragmentManager fm = Objects.requireNonNull(getFragmentManager());
+            for(int i = 0; i < fm.getBackStackEntryCount(); ++i) {
+                fm.popBackStack();
+            }
+            FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction();
+            LoginFragment fragment = new LoginFragment();
+            ft.replace(R.id.fragment, fragment);
+            ft.commit();
+        });
 
     }
 
@@ -173,8 +198,8 @@ public class ProfileFragment extends BaseFragment {
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                binding.theme.setText(snapshot.child("theme").getValue(String.class));
                 binding.username.setText(snapshot.child("username").getValue(String.class));
+
             }
 
             @Override

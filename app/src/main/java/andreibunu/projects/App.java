@@ -20,7 +20,6 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         instance = this;
-
         appComponent = DaggerAppComponent.builder()
                 .appModule(new AppModule(this))
                 .apiModule(new ApiModule())
@@ -28,7 +27,6 @@ public class App extends Application {
                 .clientModule(new ClientModule())
                 .build();
         Stetho.initializeWithDefaults(this);
-
         appComponent.inject(this);
     }
 

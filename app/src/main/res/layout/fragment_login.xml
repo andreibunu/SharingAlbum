@@ -7,6 +7,7 @@
     android:background="@drawable/login_background"
     tools:context=".ui.login.LoginFragment">
 
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/login_topper_constraint"
         android:layout_width="match_parent"
@@ -51,7 +52,7 @@
         android:id="@+id/login_username_layout"
         android:layout_width="334dp"
         android:layout_height="64dp"
-        android:layout_marginTop="68dp"
+        android:layout_marginTop="100dp"
         android:background="@drawable/login_input_background"
         android:textColorHint="@color/white_hint75"
         app:layout_constraintEnd_toEndOf="parent"
@@ -64,11 +65,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:hint="@string/username"
-            android:text="bunuraduandrei@gmail.com"
             android:inputType="none"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:singleLine="true"
+            android:text="bunuraduandrei@gmail.com"
             android:textColor="@color/colorPrimary"
             android:textColorHint="@android:color/white" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -90,75 +91,71 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:hint="@string/password"
-            android:text="parola"
             android:inputType="textPassword"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:singleLine="true"
+            android:text="parola"
             android:textColor="@color/colorPrimary"
             android:textColorHint="@android:color/white" />
     </com.google.android.material.textfield.TextInputLayout>
+
 
     <Button
         android:id="@+id/login_login_btn"
         android:layout_width="221dp"
         android:layout_height="50dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginBottom="32dp"
         android:background="@drawable/main_button_background"
         android:text="@string/sign_in"
         android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/login_register"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/login_password_layout" />
-
-    <ImageView
-        android:id="@+id/login_google_signin"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_marginBottom="64dp"
-        android:contentDescription="@string/cd_google_logo"
-        android:src="@drawable/google_logo"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/login_google_login_tv" />
-
-    <TextView
-        android:id="@+id/login_forgot_password"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/forgot_password"
-        android:textColor="#FFFFFF"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/login_login_btn" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/login_register"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginBottom="32dp"
         android:text="@string/create_an_account"
         android:textColor="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/login_forgot_password" />
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <TextView
-        android:id="@+id/login_google_login_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="56dp"
-        android:layout_marginBottom="8dp"
-        android:text="@string/or_login_with_google"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toTopOf="@+id/login_google_signin"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/login_register" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/login_progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#BF000000"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:indeterminateDrawable="@drawable/custom_progress_bar"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/logging_you_in"
+            android:textAlignment="center"
+            android:textColor="@color/textColorWhite"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/progressBar" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

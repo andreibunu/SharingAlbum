@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,6 +22,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -36,12 +38,15 @@ import andreibunu.projects.R;
 import andreibunu.projects.apiService.facerecognition.FaceRecognitionHandler;
 import andreibunu.projects.databinding.FragmentFriendsGalleryBinding;
 import andreibunu.projects.domain.FriendPhoto;
+import andreibunu.projects.domain.PhonePhoto;
 import andreibunu.projects.ui.filter.FilterList;
 import andreibunu.projects.ui.gallery.domain.FriendPhotoPair;
+import andreibunu.projects.ui.image.ImageFromFriendFragment;
 import andreibunu.projects.utils.ImageUtils;
 
 public class FriendsGalleryFragment extends Fragment {
 
+    private static final String TAG = FriendsGalleryFragment.class.getCanonicalName();
     @Inject
     FaceRecognitionHandler handler;
     FragmentFriendsGalleryBinding binding;
@@ -50,6 +55,7 @@ public class FriendsGalleryFragment extends Fragment {
     GalleryAdapter adapter;
     FilterList filterList;
     private DatabaseReference friendsPicsReference;
+    private List<FriendPhoto> allPhotos;
 
     public FriendsGalleryFragment(FilterList filtersList) {
         this.filterList = filtersList;
@@ -59,11 +65,34 @@ public class FriendsGalleryFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         phonePhotos = new ArrayList<>();
-        adapter = new GalleryAdapter();
+        allPhotos = new ArrayList<>();
+
+        adapter = new GalleryAdapter(new GalleryAdapter.ClickListener() {
+            @Override
+            public void onClick(PhonePhoto phonePhoto) {
+                //Nothing to do here
+            }
+
+            @Override
+            public void onClick(FriendPhoto friendPhoto) {
+                FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction();
+                ImageFromFriendFragment fragment = new ImageFromFriendFragment();
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("list", (Serializable) allPhotos);
+                bundle.putString("index", allPhotos.indexOf(friendPhoto) + "");
+                fragment.setArguments(bundle);
+                ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
+                ft.commit();
+            }
+
+//
+        });
         adapter.submitList(phonePhotos);
-        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        firebaseUser = FirebaseAuth.getInstance().
+                getCurrentUser();
         FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-        friendsPicsReference = firebaseDatabase.getReference("users").child(Objects.requireNonNull(firebaseUser).getUid()).child("photos");
+        friendsPicsReference = firebaseDatabase.getReference("users").
+                child(Objects.requireNonNull(firebaseUser).getUid()).child("photos");
     }
 
     @Override
@@ -82,10 +111,12 @@ public class FriendsGalleryFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
         getPhotos();
+
     }
 
     private void getPhotos() {
-        this.friendsPicsReference.addValueEventListener(new ValueEventListener() {
+
+        this.friendsPicsReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 phonePhotos.clear();
@@ -114,8 +145,7 @@ public class FriendsGalleryFragment extends Fragment {
         friendPhoto.setFrom(friend.child("from").getValue(String.class));
         friendPhoto.setTags(friend.child("tags").getValue(String.class));
         friendPhoto.setPeople(friend.child("people").getValue(String.class));
-        //todo handle date, needs to be added to firebase in another way
-        //todo problem should be from ImageUtils, date format not respected?
+
         friendPhoto.setDate(
                 new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH).parse(
                         Objects.requireNonNull(friend.child("date").getValue(String.class))
@@ -133,6 +163,8 @@ public class FriendsGalleryFragment extends Fragment {
     }
 
     private void createAndDisplayPairs(List<FriendPhoto> all) {
+        this.allPhotos.clear();
+        this.allPhotos.addAll(all);
         phonePhotos.clear();
         if (all.size() == 0) {
             //todo what is it supposed to do here?

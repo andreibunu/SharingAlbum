@@ -16,15 +16,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 
 import andreibunu.projects.R;
+import andreibunu.projects.domain.FriendPhoto;
+import andreibunu.projects.domain.PhonePhoto;
+import andreibunu.projects.ui.filter.adapter.FilterFriendsAdapter;
+import andreibunu.projects.ui.filter.adapter.domain.FriendFilter;
 import andreibunu.projects.ui.gallery.domain.FriendPhotoPair;
 import andreibunu.projects.ui.gallery.domain.PhotoPair;
 
 public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder> {
 
     private static PhotoPairItemViewDiffCallBack diffCallback = new PhotoPairItemViewDiffCallBack();
+    private static ClickListener clickListener;
 
-    protected GalleryAdapter() {
+
+    protected GalleryAdapter(ClickListener clickListener) {
         super(diffCallback);
+        this.clickListener = clickListener;
     }
 
     /**
@@ -65,8 +72,6 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
     public int getItemViewType(int position) {
         if (getItem(position) instanceof PhotoPair || getItem(position) instanceof FriendPhotoPair)
             return 0;
-//        if (getItem(position) instanceof FriendPhotoPair)
-//            return 1;
 
         return 1;
     }
@@ -105,6 +110,18 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
             } else {
                 rightConstraint.setVisibility(View.GONE);
             }
+            setListeners(item);
+
+        }
+
+        private void setListeners(PhotoPair item) {
+            left.setOnClickListener(v -> clickListener.onClick(item.getLeft()));
+            right.setOnClickListener(v -> clickListener.onClick(item.getRight()));
+        }
+
+        private void setListeners(FriendPhotoPair item) {
+            left.setOnClickListener(v -> clickListener.onClick(item.getLeft()));
+            right.setOnClickListener(v -> clickListener.onClick(item.getRight()));
         }
 
         public void onBind(FriendPhotoPair item) {
@@ -122,7 +139,10 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
             } else {
                 rightConstraint.setVisibility(View.GONE);
             }
+            setListeners(item);
         }
+
+
     }
 
     public static class DateViewHolder extends RecyclerView.ViewHolder {
@@ -151,5 +171,10 @@ public class GalleryAdapter extends ListAdapter<Object, RecyclerView.ViewHolder>
         public boolean areContentsTheSame(@NonNull Object oldItem, @NonNull Object newItem) {
             return false;
         }
+    }
+
+    public interface ClickListener{
+        void onClick(PhonePhoto phonePhoto);
+        void onClick(FriendPhoto friendFilter);
     }
 }

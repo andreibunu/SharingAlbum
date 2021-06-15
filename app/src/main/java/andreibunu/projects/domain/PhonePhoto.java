@@ -1,8 +1,10 @@
 package andreibunu.projects.domain;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class PhonePhoto {
+
+public class PhonePhoto implements Serializable {
     private String absolutePath;
     private Date date;
 

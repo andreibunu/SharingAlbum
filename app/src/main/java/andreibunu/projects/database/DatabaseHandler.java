@@ -3,6 +3,8 @@ package andreibunu.projects.database;
 import android.database.Cursor;
 import android.util.Log;
 
+import androidx.room.Database;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -46,6 +48,7 @@ public class DatabaseHandler {
     }
 
 
+
     public Single<List<DatabaseImage>> getImages() {
         return Single.create(emitter -> {
             try {
@@ -66,6 +69,44 @@ public class DatabaseHandler {
                     images.add(img);
                 }
                 emitter.onSuccess(images);
+            } catch (Exception e) {
+                Log.d(TAG, Objects.requireNonNull(e.getMessage()));
+                emitter.onError(e);
+            }
+        });
+    }
+
+    public Single<DatabaseImage> getImage(String dbName){
+        return Single.create(emitter -> {
+            try {
+                DatabaseImage databaseImage = appDatabase.galleryDao().getImage(dbName);
+                emitter.onSuccess(databaseImage);
+            } catch (Exception e) {
+                Log.d(TAG, Objects.requireNonNull(e.getMessage()));
+                emitter.onError(e);
+            }
+        });
+    }
+
+    public Single<DatabaseUserLink> getUsername(String index){
+        return Single.create(emitter -> {
+            try {
+                DatabaseUserLink username = appDatabase.userLinksDao().getUsername(index);
+                emitter.onSuccess(username);
+            } catch (Exception e) {
+                Log.d(TAG, Objects.requireNonNull(e.getMessage()));
+                emitter.onError(e);
+            }
+        });
+    }
+
+
+    public Single<DatabaseUserLink> insertLink(String idx, String username, int number, String friendId) {
+        return Single.create(emitter -> {
+            try {
+                DatabaseUserLink link = new DatabaseUserLink(idx, username, number, friendId);
+                appDatabase.userLinksDao().addLink(link);
+                emitter.onSuccess(link);
             } catch (Exception e) {
                 Log.d(TAG, Objects.requireNonNull(e.getMessage()));
                 emitter.onError(e);

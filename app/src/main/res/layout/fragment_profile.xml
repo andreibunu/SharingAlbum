@@ -70,6 +70,18 @@
         app:layout_constraintTop_toBottomOf="@+id/topper_constraint"
 />
 
+    <TextView
+        android:id="@+id/logout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="16dp"
+        android:text="Logout"
+        android:textColor="@color/textColorWhite"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topper_constraint" />
+
 
     <TextView
         android:id="@+id/name"
@@ -147,32 +159,17 @@
         app:layout_constraintTop_toBottomOf="@+id/username" />
 
     <TextView
-        android:id="@+id/theme"
-        android:layout_width="300dp"
-        android:layout_height="30dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/theme_black"
-        android:textAlignment="center"
-        android:background="@drawable/login_background"
-        android:textColor="@color/textColorWhite"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/themetv" />
-
-    <TextView
         android:id="@+id/theme_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
         android:text="@string/theme_info"
         android:textAlignment="center"
         android:textColor="@color/textColorWhite"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/theme" />
+        app:layout_constraintTop_toBottomOf="@+id/themetv" />
 
     <ImageView
         android:id="@+id/edit"

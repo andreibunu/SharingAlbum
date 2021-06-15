@@ -10,6 +10,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -17,6 +20,9 @@ import java.util.Objects;
 import andreibunu.projects.R;
 import andreibunu.projects.databinding.FragmentChoiceBinding;
 import andreibunu.projects.ui.filter.FilterFragment;
+import andreibunu.projects.ui.filter.FilterList;
+import andreibunu.projects.ui.gallery.FriendsGalleryFragment;
+import andreibunu.projects.ui.profile.ProfileFragment;
 
 import static andreibunu.projects.MainActivity.TAG;
 
@@ -41,6 +47,32 @@ public class ChoiceFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        setChoiceListeners();
+        setProfileListener();
+        setProfilePicture();
+
+    }
+
+    private void setProfileListener() {
+        binding.filterUser.setOnClickListener(v -> {
+            FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction()
+                    .setReorderingAllowed(true)
+                    .addSharedElement(binding.filterUser, "transition");
+            ProfileFragment fragment = new ProfileFragment();
+            ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
+            ft.commit();
+        });
+    }
+
+    private void setProfilePicture() {
+        FirebaseAuth user = FirebaseAuth.getInstance();
+        Glide.with(Objects.requireNonNull(getContext()))
+                .load(Objects.requireNonNull(user.getCurrentUser()).getPhotoUrl())
+                .placeholder(R.drawable.profile_placeholder)
+                .into(binding.filterUser);
+    }
+
+    private void setChoiceListeners() {
         binding.mine.setOnClickListener(v -> {
             FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction();
             FilterFragment fragment = new FilterFragment();
@@ -53,10 +85,11 @@ public class ChoiceFragment extends Fragment {
 
         binding.friends.setOnClickListener(v -> {
             FragmentTransaction ft = Objects.requireNonNull(getFragmentManager()).beginTransaction();
-            FilterFragment fragment = new FilterFragment();
+            FilterList filterList = new FilterList();
             Bundle bundle = new Bundle();
-            bundle.putString("from", "friends");
-            fragment.setArguments(bundle);
+            bundle.putSerializable("filters", filterList);
+            FriendsGalleryFragment fragment = new FriendsGalleryFragment(filterList);
+            ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
             ft.replace(R.id.fragment, fragment).addToBackStack(TAG);
             ft.commit();
         });

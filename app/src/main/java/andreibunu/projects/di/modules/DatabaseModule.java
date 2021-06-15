@@ -23,7 +23,8 @@ public class DatabaseModule {
          *                      not null        not null           not null
          *                                                  not empty without spaces
          *
-         *  will also set JournalMode on AUTOMATIC
+         *  will also s
+         *  et JournalMode on AUTOMATIC
          *  will also set mRequireMigration to TRUE
          *  will create a MigrationContainer for the database
          */

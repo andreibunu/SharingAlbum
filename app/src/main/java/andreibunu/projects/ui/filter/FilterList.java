@@ -1,6 +1,7 @@
 package andreibunu.projects.ui.filter;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import andreibunu.projects.ui.filter.adapter.domain.FriendFilter;
@@ -11,9 +12,7 @@ public class FilterList implements Serializable {
 
     private List<String> tags;
 
-    private List<String> locations;
-
-    private List<String> date;
+    private List<Date> date;
 
     public List<FriendFilter> getFriends() {
         return friends;
@@ -31,19 +30,11 @@ public class FilterList implements Serializable {
         this.tags = tags;
     }
 
-    public List<String> getLocations() {
-        return locations;
-    }
-
-    public void setLocations(List<String> locations) {
-        this.locations = locations;
-    }
-
-    public List<String> getDate() {
+    public List<Date> getDate() {
         return date;
     }
 
-    public void setDate(List<String> date) {
+    public void setDate(List<Date> date) {
         this.date = date;
     }
 }
